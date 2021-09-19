@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+#
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Constellation", "src\Constellation.fsproj", "{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5DADC70F-1700-4945-9EFF-1C61EBF49DC5}"
+ProjectSection(SolutionItems) = preProject
+	.gitignore = .gitignore
+EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Debug|x64.Build.0 = Debug|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Debug|x86.Build.0 = Debug|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Release|x64.ActiveCfg = Release|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Release|x64.Build.0 = Release|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Release|x86.ActiveCfg = Release|Any CPU
+		{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
