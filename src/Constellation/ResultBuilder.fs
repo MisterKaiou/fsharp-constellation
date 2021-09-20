@@ -1,4 +1,4 @@
-﻿module Constalation.ResultBuilder
+﻿module Constellation.ResultBuilder
 
 type ResultBuilder() =
     member _.Return(x) = Ok x

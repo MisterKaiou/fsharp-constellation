@@ -2,7 +2,7 @@
 
 open System
 open System.Reflection
-open System.Runtime.InteropServices
+open System.Threading
 open Microsoft.Azure.Cosmos
 open FSharp.Control
 
@@ -22,7 +22,7 @@ module Attributes =
             let value = prop.GetValue(from)
             
             match value with
-            | :? String as s -> Nullable(PartitionKey(s))
+            | :? string as s -> Nullable(PartitionKey(s))
             | :? bool as b -> Nullable(PartitionKey(b))
             | :? double as f -> Nullable(PartitionKey(f))
             | _ -> raise (ArgumentException("The type of the PartitionKey property is not supported"))
@@ -46,7 +46,7 @@ module Attributes =
                 | None -> raise (ArgumentNullException(nameof obj, "The given obj does not contain a property or field with PartitionKey Attribute"))
             |> getPropertyValue obj
     
-module Constellation =
+module Context =
     type CosmosEndpointInfo =
         { Endpoint: string
           AccountKey: string }
@@ -67,8 +67,8 @@ module Constellation =
             let option = clientOptions |> Option.toObj
             
             match _connectionMode with
-            | ConnectionString s -> _client <- new CosmosClient(s, option)
-            | AccountKey ei -> _client <- new CosmosClient(ei.Endpoint, ei.AccountKey)
+            | ConnectionString s -> this.Client <- new CosmosClient(s, option)
+            | AccountKey ei -> this.Client <- new CosmosClient(ei.Endpoint, ei.AccountKey, option)
             | _ -> ()
 
         member this.DatabaseId
@@ -110,25 +110,28 @@ module Constellation =
                 this.setupContextClient clientOptions
 
         interface IDisposable with
-            member this.Dispose() = _client.Dispose()
+            member this.Dispose() = 
+                _client.Dispose()
+                this.ConnectionMode <- Undefined
             
     type ConstellationContainer =
         | Container of Container
             
-        member private this.container =
+        member internal this.container =
             match this with | Container c -> c
             
-        member this.insertAsync (itemOptions: ItemRequestOptions option) items =
+        member this.insertWithOptionsAsync (itemOptions: ItemRequestOptions option) (cancelToken: CancellationToken option) items =
             let getPk this = Attributes.PartitionKeyAttributeHelpers.getPartitionKeyFromType this
             let container = this.container
             let options = itemOptions |> Option.toObj
+            let token = cancelToken |> function Some c -> c | None -> defaultArg cancelToken (CancellationToken())           
             
             match items with
             | [ single ] ->
                 let pk = getPk single
                 
                 [ container
-                    .CreateItemAsync(single, pk, options)
+                    .CreateItemAsync(single, pk, options, token)
                     |> Async.AwaitTask ]
             | _ ->
                 items
@@ -136,11 +139,11 @@ module Constellation =
                        (fun curr ->
                             let pk = getPk curr
                             
-                            container.CreateItemAsync(curr, pk)
+                            container.CreateItemAsync(curr, pk, options, token)
                             |> Async.AwaitTask
                        )
             |> AsyncSeq.ofSeqAsync
-    
+                
     type CosmosContext with
         member this.GetContainer containerId =
             Container (this.Client.GetContainer(this.DatabaseId, containerId))
