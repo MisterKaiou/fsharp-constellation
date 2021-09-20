@@ -8,8 +8,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Attributes.fs" />
         <Compile Include="ResultBuilder.fs" />
         <Compile Include="Library.fs" />
+		<Compile Include="TypeExtensions.fs" />
         <None Include="LiveTesting.fsx" />
     </ItemGroup>
 
