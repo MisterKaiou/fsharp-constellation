@@ -5,22 +5,22 @@ open Microsoft.Azure.Cosmos
 
 type RequestOptionsBuilder() =
 
-    member _.Yield _ = RequestOptions()
+    member inline _.Yield _ = RequestOptions()
 
-    member _.Run(options: #RequestOptions) = options
+    member inline _.Run(options: #RequestOptions) = options
 
     [<CustomOperation("ifMatchEtag")>]
-    member _.WithIfMatchEtag(requestOption: #RequestOptions, tag) =
+    member inline _.WithIfMatchEtag(requestOption: #RequestOptions, tag) =
         requestOption.IfMatchEtag <- tag
         requestOption
 
     [<CustomOperation("ifNoneMatchEtag")>]
-    member _.WithIfNoneMatchEtag(requestOption: #RequestOptions, tag) =
+    member inline _.WithIfNoneMatchEtag(requestOption: #RequestOptions, tag) =
         requestOption.IfNoneMatchEtag <- tag
         requestOption
         
     [<CustomOperation("properties")>]
-    member _.WithProperties(requestOption: #RequestOptions, properties) =
+    member inline _.WithProperties(requestOption: #RequestOptions, properties) =
         requestOption.Properties <- properties
         requestOption
 
@@ -30,36 +30,50 @@ let requestOptions = RequestOptionsBuilder()
 type ItemRequestOptionsBuilder() =
     inherit RequestOptionsBuilder()
 
-    member _.Yield _ = ItemRequestOptions()
+    member inline _.Yield _ = ItemRequestOptions()
 
     [<CustomOperation("preTriggers")>]
-    member _.WithPreTriggers(options: ItemRequestOptions, triggers: string list) =
+    member inline _.WithPreTriggers(options: ItemRequestOptions, triggers: string list) =
         options.PreTriggers <- triggers
         options
 
     [<CustomOperation("postTriggers")>]
-    member _.WithPostTriggers(options: ItemRequestOptions, triggers: string list) =
+    member inline _.WithPostTriggers(options: ItemRequestOptions, triggers: string list) =
         options.PostTriggers <- triggers
         options
 
     [<CustomOperation("indexingDirective")>]
-    member _.WithIndexingDirective(options: ItemRequestOptions, directive: IndexingDirective) =
+    member inline _.WithIndexingDirective(options: ItemRequestOptions, directive: IndexingDirective) =
         options.IndexingDirective <- directive
         options
 
     [<CustomOperation("consistencyLevel")>]
-    member _.WithConsistencyLevel(options: ItemRequestOptions, level: ConsistencyLevel) =
+    member inline _.WithConsistencyLevel(options: ItemRequestOptions, level: ConsistencyLevel) =
         options.ConsistencyLevel <- level
         options
 
     [<CustomOperation("sessionToken")>]
-    member _.WithSessionToken(options: ItemRequestOptions, token: string) =
+    member inline _.WithSessionToken(options: ItemRequestOptions, token: string) =
         options.SessionToken <- token
         options
 
     [<CustomOperation("enableContentResponseOnWrite")>]
-    member _.WithEnableContentResponseOnWrite(options: ItemRequestOptions, shouldEnable: bool) =
+    member inline _.WithEnableContentResponseOnWrite(options: ItemRequestOptions, shouldEnable: bool) =
         options.EnableContentResponseOnWrite <- shouldEnable
         options
 
 let itemRequestOptions = ItemRequestOptionsBuilder()
+
+[<Sealed>]
+type ChangeFeedRequestOptionsBuilder() =
+        
+    member inline _.Yield _ = ChangeFeedRequestOptions()
+    
+    member inline _.Run(last) = last
+    
+    [<CustomOperation("pageSizeHint")>]
+    member inline _.WithPageSizeHint(options: ChangeFeedRequestOptions, pageSize) =
+        options.PageSizeHint <- pageSize
+        options
+        
+let changeFeedRequestOptions = ChangeFeedRequestOptionsBuilder()

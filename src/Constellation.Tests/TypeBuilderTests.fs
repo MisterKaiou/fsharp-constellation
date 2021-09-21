@@ -1,5 +1,7 @@
 ﻿namespace Constellation.Tests
 
+open System
+
 module TypeBuilderTests =
 
     open Constellation.Tests.CustomBuilders
@@ -65,4 +67,14 @@ module TypeBuilderTests =
                       equal subject.EnableContentResponseOnWrite expected.EnableContentResponseOnWrite
                   }
                   |> Expect.isTrue
-                  <| "These objects should be equal" ]
+                  <| "These objects should be equal"
+
+              testCase " A ChangeFeedRequestOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let expected = ChangeFeedRequestOptions()
+                  expected.PageSizeHint <- 5
+
+                  let subject =
+                      changeFeedRequestOptions { pageSizeHint 5 }
+
+                  Expect.equal subject.PageSizeHint expected.PageSizeHint "These properties should be equal" ]
