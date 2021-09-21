@@ -1,4 +1,7 @@
-﻿module Constellation.Context
+﻿/// <summary>
+///     Base module for Context related objects
+/// </summary>
+module Constellation.Context
 
 open System
 open Microsoft.Azure.Cosmos
@@ -12,6 +15,16 @@ type ConnectionMode =
     | AccountKey of CosmosEndpointInfo
     | Undefined 
     
+/// <summary>
+///     A wrapper around a single shared instance of CosmosClient. Providing a EF like usage for DI Containers.
+/// </summary>
+/// <remarks>
+///     It must be noted that, since the intended usage is for the client to be a single instance throughout all context
+///     instances, and all context instances are supposed to be a singleton, there are no safe guards against unintentional
+///     disposing; except that a new context always checks if the client has been disposed, and creates a new one if so.
+///     The proper behaviour can only be guaranteed if the context instances are created as singletons through the
+///     application's lifetime. 
+/// </remarks>
 type CosmosContext private () =
     let mutable _databaseId = ""
 
@@ -41,6 +54,9 @@ type CosmosContext private () =
             else
                 ()
 
+    ///<summary>
+    ///     This shared CosmosClient. It's the same throughout all of <see cref="CosmosContext"></see>.
+    ///</summary>
     member this.Client
         with get () = _client
         and private set v =

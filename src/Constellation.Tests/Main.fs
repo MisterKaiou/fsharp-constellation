@@ -1,7 +1,9 @@
-﻿module Constellation.Tests
+﻿namespace Constellation.Tests
 
-open Expecto
+module Entry =
 
-[<EntryPoint>]
-let main argv =
-    runTestsInAssemblyWithCLIArgs [] argv
+    open Expecto
+    
+    [<EntryPoint>]
+    let main argv =
+        runTestsInAssemblyWithCLIArgs [] argv

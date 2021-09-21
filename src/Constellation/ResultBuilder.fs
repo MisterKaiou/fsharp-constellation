@@ -1,16 +1,16 @@
 ﻿module Constellation.ResultBuilder
 
 type ResultBuilder() =
-    member _.Return(x) = Ok x
-    
-    member _.ReturnFrom (x: Result<_, _>) = x
-    
-    member _.Bind(m, f) = Result.bind f m
-    
-    member _.Zero() = Error
-    
-    member _.Combine(m, f) = Result.bind f m
-    
-    member _.Run(f) = f()
+    member inline _.Return(x) = Ok x
+           
+    member inline _.ReturnFrom (x: Result<_, _>) = x
+           
+    member inline _.Bind(m, f) = Result.bind f m
+           
+    member inline _.Zero() = Error
+           
+    member inline _.Combine(m, f) = Result.bind f m
+           
+    member inline _.Run(f) = f()
     
 let result = ResultBuilder()

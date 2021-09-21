@@ -7,8 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="CustomBuilders.fs" />
         <Compile Include="AttributeTests.fs" />
         <Compile Include="CosmosContextTests.fs" />
+        <Compile Include="TypeBuilderTests.fs" />
         <Compile Include="Main.fs" />
     </ItemGroup>
 
