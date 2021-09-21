@@ -148,3 +148,20 @@ type QueryRequestOptionsBuilder() =
         opt
         
 let queryRequestOptions = QueryRequestOptionsBuilder()
+
+type ReadManyRequestOptionsBuilder() =
+    inherit RequestOptions()
+    
+    member inline _.Yield _ = ReadManyRequestOptions()    
+    
+    [<CustomOperation("sessionToken")>]
+    member inline _.WithSessionToken(opt: ReadManyRequestOptions, token) =
+        opt.SessionToken <- token
+        opt
+
+    [<CustomOperation("consistencyLevel")>]
+    member inline _.WithConsistencyLevel(opt: ReadManyRequestOptions, level) =
+        opt.ConsistencyLevel <- level
+        opt
+
+let readManyRequestOptions = ReadManyRequestOptionsBuilder() 
