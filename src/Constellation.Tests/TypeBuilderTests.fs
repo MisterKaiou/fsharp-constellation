@@ -1,6 +1,7 @@
 ﻿namespace Constellation.Tests
 
 open System
+open Microsoft.Azure.Cosmos.Scripts
 
 module TypeBuilderTests =
 
@@ -147,6 +148,28 @@ module TypeBuilderTests =
                   check {
                       equal subject.SessionToken expected.SessionToken
                       equal subject.ConsistencyLevel expected.ConsistencyLevel
+                  }
+                  |> Expect.isTrue
+                  <| "These objects should be equal"
+                  
+              testCase " A StoredProcedureRequestOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let expected = StoredProcedureRequestOptions()
+                  expected.SessionToken <- "Some token"
+                  expected.ConsistencyLevel <- ConsistencyLevel.Eventual
+                  expected.EnableScriptLogging <- true
+
+                  let subject =
+                      storageProcedureRequestOptions {
+                          sessionToken "Some token"
+                          consistencyLevel ConsistencyLevel.Eventual
+                          enableScriptLogging
+                      }
+
+                  check {
+                      equal subject.SessionToken expected.SessionToken
+                      equal subject.ConsistencyLevel expected.ConsistencyLevel
+                      equal subject.EnableScriptLogging expected.EnableScriptLogging
                   }
                   |> Expect.isTrue
                   <| "These objects should be equal" ]

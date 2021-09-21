@@ -2,6 +2,7 @@
 
 open System
 open Microsoft.Azure.Cosmos
+open Microsoft.Azure.Cosmos.Scripts
 
 type RequestOptionsBuilder() =
 
@@ -18,7 +19,7 @@ type RequestOptionsBuilder() =
     member inline _.WithIfNoneMatchEtag(requestOption: #RequestOptions, tag) =
         requestOption.IfNoneMatchEtag <- tag
         requestOption
-        
+
     [<CustomOperation("properties")>]
     member inline _.WithProperties(requestOption: #RequestOptions, properties) =
         requestOption.Properties <- properties
@@ -66,57 +67,57 @@ let itemRequestOptions = ItemRequestOptionsBuilder()
 
 [<Sealed>]
 type ChangeFeedRequestOptionsBuilder() =
-        
+
     member inline _.Yield _ = ChangeFeedRequestOptions()
-    
+
     member inline _.Run(last) = last
-    
+
     [<CustomOperation("pageSizeHint")>]
     member inline _.WithPageSizeHint(options: ChangeFeedRequestOptions, pageSize) =
         options.PageSizeHint <- pageSize
         options
-        
+
 let changeFeedRequestOptions = ChangeFeedRequestOptionsBuilder()
 
 [<Sealed>]
 type ContainerRequestOptionsBuilder() =
     inherit RequestOptionsBuilder()
-    
+
     member inline _.Yield _ = ContainerRequestOptions()
-    
+
     [<CustomOperation("populateQuota")>]
     member inline _.WithQuota(opt: ContainerRequestOptions) =
         opt.PopulateQuotaInfo <- true
         opt
-        
+
 let containerRequestOptions = ContainerRequestOptionsBuilder()
 
 [<Sealed>]
 type QueryRequestOptionsBuilder() =
     inherit RequestOptionsBuilder()
-    
+
     member inline _.Yield _ = QueryRequestOptions()
-    
+
     [<CustomOperation("consistencyLevel")>]
     member inline _.WithConsistencyLevel(opt: QueryRequestOptions, level) =
         opt.ConsistencyLevel <- level
         opt
-        
+
     [<CustomOperation("enableLowPrecisionOrderBy")>]
     member inline _.WithEnableLowPrecisionOrderBy(opt: QueryRequestOptions) =
         opt.EnableLowPrecisionOrderBy <- true
         opt
-        
+
     [<CustomOperation("enableScanInQuery")>]
     member inline _.WithEnableScanInQuery(opt: QueryRequestOptions) =
         opt.EnableScanInQuery <- true
         opt
-    
+
     [<CustomOperation("maxBufferedItemCount")>]
     member inline _.WithMaxBufferedItemCount(opt: QueryRequestOptions, count) =
         opt.MaxBufferedItemCount <- count
-        opt    
-    
+        opt
+
     [<CustomOperation("maxConcurrency")>]
     member inline _.WithMaxConcurrency(opt: QueryRequestOptions, count) =
         opt.MaxConcurrency <- count
@@ -131,29 +132,29 @@ type QueryRequestOptionsBuilder() =
     member inline _.WithPartitionKey(opt: QueryRequestOptions, partitionKey) =
         opt.PartitionKey <- partitionKey
         opt
-        
+
     [<CustomOperation("populateIndexMetrics")>]
     member inline _.WithPopulateIndexMetrics(opt: QueryRequestOptions) =
         opt.PopulateIndexMetrics <- true
         opt
-        
+
     [<CustomOperation("responseContinuationTokenLimitInKb")>]
     member inline _.WithResponseContinuationTokenLimitInKb(opt: QueryRequestOptions, limit) =
         opt.ResponseContinuationTokenLimitInKb <- limit
         opt
-        
+
     [<CustomOperation("sessionToken")>]
     member inline _.WithSessionToken(opt: QueryRequestOptions, token) =
         opt.SessionToken <- token
         opt
-        
+
 let queryRequestOptions = QueryRequestOptionsBuilder()
 
 type ReadManyRequestOptionsBuilder() =
     inherit RequestOptions()
-    
-    member inline _.Yield _ = ReadManyRequestOptions()    
-    
+
+    member inline _.Yield _ = ReadManyRequestOptions()
+
     [<CustomOperation("sessionToken")>]
     member inline _.WithSessionToken(opt: ReadManyRequestOptions, token) =
         opt.SessionToken <- token
@@ -164,4 +165,26 @@ type ReadManyRequestOptionsBuilder() =
         opt.ConsistencyLevel <- level
         opt
 
-let readManyRequestOptions = ReadManyRequestOptionsBuilder() 
+let readManyRequestOptions = ReadManyRequestOptionsBuilder()
+
+type StorageProcedureRequestOptionsBuilder() =
+    inherit RequestOptions()
+    
+    member inline _.Yield _ = StoredProcedureRequestOptions()
+    
+    [<CustomOperation("sessionToken")>]
+    member inline _.WithSessionToken(opt: StoredProcedureRequestOptions, token) =
+        opt.SessionToken <- token
+        opt
+        
+    [<CustomOperation("consistencyLevel")>]
+    member inline _.WithConsistencyLevel(opt: StoredProcedureRequestOptions, level) =
+        opt.ConsistencyLevel <- level
+        opt
+
+    [<CustomOperation("enableScriptLogging")>]
+    member inline _.WithEnableScriptLogging(opt: StoredProcedureRequestOptions) =
+        opt.EnableScriptLogging <- true
+        opt
+        
+let storageProcedureRequestOptions = StorageProcedureRequestOptionsBuilder()
