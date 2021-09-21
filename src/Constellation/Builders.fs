@@ -188,3 +188,20 @@ type StorageProcedureRequestOptionsBuilder() =
         opt
         
 let storageProcedureRequestOptions = StorageProcedureRequestOptionsBuilder()
+
+type TransactionalBatchItemRequestOptionsBuilder() =
+    inherit RequestOptionsBuilder()
+    
+    member inline _.Yield _ = TransactionalBatchItemRequestOptions()
+    
+    [<CustomOperation("enableContentResponseOnWrite")>]
+    member inline _.WithEnableContentResponseOnWrite(opt: TransactionalBatchItemRequestOptions) =
+        opt.EnableContentResponseOnWrite <- true
+        opt
+        
+    [<CustomOperation("indexingDirective")>]
+    member inline _.WithIndexingDirective(opt: TransactionalBatchItemRequestOptions, directive) =
+        opt.IndexingDirective <- directive
+        opt
+        
+let transactionalBatchItemRequestOptions = TransactionalBatchItemRequestOptionsBuilder()

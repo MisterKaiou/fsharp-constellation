@@ -172,4 +172,23 @@ module TypeBuilderTests =
                       equal subject.EnableScriptLogging expected.EnableScriptLogging
                   }
                   |> Expect.isTrue
+                  <| "These objects should be equal"
+                  
+              testCase " A TransactionalBatchItemRequestOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let expected = TransactionalBatchItemRequestOptions()
+                  expected.EnableContentResponseOnWrite <- true
+                  expected.IndexingDirective <- IndexingDirective.Include
+
+                  let subject =
+                      transactionalBatchItemRequestOptions {
+                          enableContentResponseOnWrite
+                          indexingDirective IndexingDirective.Include
+                      }
+
+                  check {
+                      equal subject.EnableContentResponseOnWrite expected.EnableContentResponseOnWrite
+                      equal subject.IndexingDirective expected.IndexingDirective
+                  }
+                  |> Expect.isTrue
                   <| "These objects should be equal" ]
