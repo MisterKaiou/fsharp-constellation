@@ -53,7 +53,7 @@ module TypeBuilderTests =
                           indexingDirective IndexingDirective.Include
                           consistencyLevel ConsistencyLevel.BoundedStaleness
                           sessionToken "Some token"
-                          enableContentResponseOnWrite true
+                          enableContentResponseOnWrite
                       }
 
                   check {
@@ -77,4 +77,55 @@ module TypeBuilderTests =
                   let subject =
                       changeFeedRequestOptions { pageSizeHint 5 }
 
-                  Expect.equal subject.PageSizeHint expected.PageSizeHint "These properties should be equal" ]
+                  Expect.equal subject.PageSizeHint expected.PageSizeHint "These properties should be equal"
+
+              testCase " A ContainerRequestOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let expected = ContainerRequestOptions()
+                  expected.PopulateQuotaInfo <- true
+
+                  let subject =
+                      containerRequestOptions { populateQuota }
+
+                  Expect.equal subject.PopulateQuotaInfo expected.PopulateQuotaInfo "These properties should be equal"
+
+              testCase " A QueryRequestOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let expected = QueryRequestOptions()
+                  expected.ConsistencyLevel <- ConsistencyLevel.Eventual
+                  expected.EnableLowPrecisionOrderBy <- true
+                  expected.EnableScanInQuery <- true
+                  expected.MaxBufferedItemCount <- 5
+                  expected.MaxConcurrency <- 10
+                  expected.MaxItemCount <- 20
+                  expected.PartitionKey <- PartitionKey("Key")
+                  expected.PopulateIndexMetrics <- true
+                  expected.ResponseContinuationTokenLimitInKb <- 500
+                  expected.SessionToken <- "Some token"
+
+                  let subject =
+                      queryRequestOptions {
+                          consistencyLevel ConsistencyLevel.Eventual
+                          enableLowPrecisionOrderBy
+                          enableScanInQuery
+                          maxBufferedItemCount 5
+                          maxConcurrency 10
+                          maxItemCount 20
+                          partitionKey (PartitionKey("Key"))
+                          populateIndexMetrics
+                          responseContinuationTokenLimitInKb 500
+                          sessionToken "Some token"
+                      }
+
+                  check {
+                      equal subject.ConsistencyLevel expected.ConsistencyLevel
+                      equal subject.EnableLowPrecisionOrderBy expected.EnableLowPrecisionOrderBy
+                      equal subject.EnableScanInQuery expected.EnableScanInQuery
+                      equal subject.MaxBufferedItemCount expected.MaxBufferedItemCount
+                      equal subject.MaxConcurrency expected.MaxConcurrency
+                      equal subject.MaxItemCount expected.MaxItemCount
+                      equal subject.PartitionKey expected.PartitionKey
+                      equal subject.PopulateIndexMetrics expected.PopulateIndexMetrics
+                      equal subject.ResponseContinuationTokenLimitInKb expected.ResponseContinuationTokenLimitInKb
+                      equal subject.SessionToken expected.SessionToken
+                  } |> Expect.isTrue <| "These objects should be equal" ]

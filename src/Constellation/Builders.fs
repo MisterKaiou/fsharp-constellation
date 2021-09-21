@@ -58,8 +58,8 @@ type ItemRequestOptionsBuilder() =
         options
 
     [<CustomOperation("enableContentResponseOnWrite")>]
-    member inline _.WithEnableContentResponseOnWrite(options: ItemRequestOptions, shouldEnable: bool) =
-        options.EnableContentResponseOnWrite <- shouldEnable
+    member inline _.WithEnableContentResponseOnWrite(options: ItemRequestOptions) =
+        options.EnableContentResponseOnWrite <- true
         options
 
 let itemRequestOptions = ItemRequestOptionsBuilder()
@@ -77,3 +77,74 @@ type ChangeFeedRequestOptionsBuilder() =
         options
         
 let changeFeedRequestOptions = ChangeFeedRequestOptionsBuilder()
+
+[<Sealed>]
+type ContainerRequestOptionsBuilder() =
+    inherit RequestOptionsBuilder()
+    
+    member inline _.Yield _ = ContainerRequestOptions()
+    
+    [<CustomOperation("populateQuota")>]
+    member inline _.WithQuota(opt: ContainerRequestOptions) =
+        opt.PopulateQuotaInfo <- true
+        opt
+        
+let containerRequestOptions = ContainerRequestOptionsBuilder()
+
+[<Sealed>]
+type QueryRequestOptionsBuilder() =
+    inherit RequestOptionsBuilder()
+    
+    member inline _.Yield _ = QueryRequestOptions()
+    
+    [<CustomOperation("consistencyLevel")>]
+    member inline _.WithConsistencyLevel(opt: QueryRequestOptions, level) =
+        opt.ConsistencyLevel <- level
+        opt
+        
+    [<CustomOperation("enableLowPrecisionOrderBy")>]
+    member inline _.WithEnableLowPrecisionOrderBy(opt: QueryRequestOptions) =
+        opt.EnableLowPrecisionOrderBy <- true
+        opt
+        
+    [<CustomOperation("enableScanInQuery")>]
+    member inline _.WithEnableScanInQuery(opt: QueryRequestOptions) =
+        opt.EnableScanInQuery <- true
+        opt
+    
+    [<CustomOperation("maxBufferedItemCount")>]
+    member inline _.WithMaxBufferedItemCount(opt: QueryRequestOptions, count) =
+        opt.MaxBufferedItemCount <- count
+        opt    
+    
+    [<CustomOperation("maxConcurrency")>]
+    member inline _.WithMaxConcurrency(opt: QueryRequestOptions, count) =
+        opt.MaxConcurrency <- count
+        opt
+
+    [<CustomOperation("maxItemCount")>]
+    member inline _.WithMaxItemCount(opt: QueryRequestOptions, count) =
+        opt.MaxItemCount <- count
+        opt
+
+    [<CustomOperation("partitionKey")>]
+    member inline _.WithPartitionKey(opt: QueryRequestOptions, partitionKey) =
+        opt.PartitionKey <- partitionKey
+        opt
+        
+    [<CustomOperation("populateIndexMetrics")>]
+    member inline _.WithPopulateIndexMetrics(opt: QueryRequestOptions) =
+        opt.PopulateIndexMetrics <- true
+        opt
+        
+    [<CustomOperation("responseContinuationTokenLimitInKb")>]
+    member inline _.WithResponseContinuationTokenLimitInKb(opt: QueryRequestOptions, limit) =
+        opt.ResponseContinuationTokenLimitInKb <- limit
+        opt
+        
+    [<CustomOperation("sessionToken")>]
+    member inline _.WithSessionToken(opt: QueryRequestOptions, token) =
+        opt.SessionToken <- token
+        opt
+        
+let queryRequestOptions = QueryRequestOptionsBuilder()
