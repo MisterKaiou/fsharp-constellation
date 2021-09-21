@@ -8,8 +8,8 @@ open System
 let private connString = "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
 
 let private CosmosContext_Dispose_ShouldReflectOnAllInstances() = 
-    let subjectOne = new CosmosContext(connString, "SomeDb")
-    let subjectTwo = new CosmosContext(connString, "OtherDb")
+    use subjectOne = new CosmosContext(connString, "SomeDb")
+    use subjectTwo = new CosmosContext(connString, "OtherDb")
     (subjectOne :> IDisposable).Dispose()
     
     Expect.throwsT<ObjectDisposedException>
@@ -22,8 +22,8 @@ let private CosmosContext_Dispose_ShouldReflectOnAllInstances() =
 
 
 let private CosmosContext_CosmosClient_ShouldBeSameInstanceOnAllCosmosContextInstances() =
-    let subjectOne = new CosmosContext(connString, "SomeDb")
-    let subjectTwo = new CosmosContext(connString, "OtherDb")
+    use subjectOne = new CosmosContext(connString, "SomeDb")
+    use subjectTwo = new CosmosContext(connString, "OtherDb")
 
     Expect.isTrue 
       <| (obj.ReferenceEquals(subjectOne.Client, subjectTwo.Client)) 
@@ -36,7 +36,7 @@ let private CosmosContext_CosmosClient_ShouldBeSameInstanceOnAllCosmosContextIns
 *)
 [<Tests>]
 let cosmosContextTests =
-    testList "CosmosContext Tests" [
+    testSequenced <| testList "CosmosContext Tests" [
         testCase
             " A disposed Constellation Context should reflect on all instances" 
             CosmosContext_Dispose_ShouldReflectOnAllInstances

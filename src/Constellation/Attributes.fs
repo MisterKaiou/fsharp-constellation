@@ -6,7 +6,7 @@ open Microsoft.Azure.Cosmos
 
 [<AttributeUsage(AttributeTargets.Field
                  ||| AttributeTargets.Property,
-                 AllowMultiple = true,
+                 AllowMultiple = false,
                  Inherited = true)>]
 type PartitionKeyAttribute() =
     inherit Attribute()

@@ -6,7 +6,7 @@ open Microsoft.Azure.Cosmos
 open System.Threading
 open FSharp.Control
 
-type ConstellationContainer with 
+type ConstellationContainer with
     member this.insertWithOptionsAsync (itemOptions: ItemRequestOptions option) (cancelToken: CancellationToken option) items =
         let getPk this = Attributes.PartitionKeyAttributeHelpers.getPartitionKeyFromType this
         let container = this.container
@@ -31,6 +31,8 @@ type ConstellationContainer with
                             |> Async.AwaitTask
                    )
         |> AsyncSeq.ofSeqAsync
+
+    member this.insertAsync items = items |> this.insertWithOptionsAsync None None
 
 type CosmosContext with
     member this.GetContainer containerId =

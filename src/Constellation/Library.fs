@@ -44,7 +44,7 @@ type CosmosContext private () =
     member this.Client
         with get () = _client
         and private set v =
-            if _disposed || _client = null then
+            if _disposed || _client |> isNull then
                 _client <- v
             else
                 ()
@@ -69,7 +69,8 @@ type CosmosContext private () =
 
     interface IDisposable with
         member this.Dispose() = 
-            if _disposed = false then
+            if not _disposed then
+                _disposed <- true
                 this.Client.Dispose()
                 this.ConnectionMode <- Undefined
             else
@@ -79,5 +80,4 @@ type ConstellationContainer =
     | Container of Container
         
     member internal this.container =
-        match this with | Container c -> c
-        
+        this |> function Container c -> c
