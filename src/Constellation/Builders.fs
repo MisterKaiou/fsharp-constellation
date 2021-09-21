@@ -205,3 +205,20 @@ type TransactionalBatchItemRequestOptionsBuilder() =
         opt
         
 let transactionalBatchItemRequestOptions = TransactionalBatchItemRequestOptionsBuilder()
+
+type TransactionalBatchRequestOptionsBuilder() =
+    inherit RequestOptionsBuilder()
+    
+    member inline _.Yield _ = TransactionalBatchRequestOptions()
+    
+    [<CustomOperation("consistencyLevel")>]
+    member inline _.WithConsistencyLevel(opt: TransactionalBatchRequestOptions, level) =
+        opt.ConsistencyLevel <- level
+        opt
+
+    [<CustomOperation("sessionToken")>]
+    member inline _.WithSessionToken(opt: TransactionalBatchRequestOptions, token) =
+        opt.SessionToken <- token
+        opt
+        
+let transactionalBatchRequestOptions = TransactionalBatchRequestOptionsBuilder()

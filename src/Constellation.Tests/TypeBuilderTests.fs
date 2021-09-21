@@ -1,6 +1,5 @@
 ﻿namespace Constellation.Tests
 
-open System
 open Microsoft.Azure.Cosmos.Scripts
 
 module TypeBuilderTests =
@@ -191,4 +190,24 @@ module TypeBuilderTests =
                       equal subject.IndexingDirective expected.IndexingDirective
                   }
                   |> Expect.isTrue
+                  <| "These objects should be equal"
+                  
+              testCase " A TransactionalBatchRequestOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let expected = TransactionalBatchRequestOptions()
+                  expected.ConsistencyLevel <- ConsistencyLevel.Eventual
+                  expected.SessionToken <- "Some token"
+
+                  let subject =
+                      transactionalBatchRequestOptions {
+                          sessionToken "Some token"
+                          consistencyLevel ConsistencyLevel.Eventual
+                      }
+
+                  check {
+                      equal subject.ConsistencyLevel expected.ConsistencyLevel
+                      equal subject.SessionToken expected.SessionToken
+                  }
+                  |> Expect.isTrue
                   <| "These objects should be equal" ]
+
