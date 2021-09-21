@@ -46,12 +46,12 @@ module TypeBuilderTests =
                       itemRequestOptions {
                           ifMatchEtag "Some tag"
                           ifNoneMatchEtag "Some other tag"
-                          withPreTriggers [ "Some pre-triggers list" ]
-                          withPostTriggers [ "Some post-triggers list" ]
-                          withIndexingDirective IndexingDirective.Include
-                          withConsistencyLevel ConsistencyLevel.BoundedStaleness
-                          withSessionToken "Some token"
-                          withEnableContentResponseOnWrite true
+                          preTriggers [ "Some pre-triggers list" ]
+                          postTriggers [ "Some post-triggers list" ]
+                          indexingDirective IndexingDirective.Include
+                          consistencyLevel ConsistencyLevel.BoundedStaleness
+                          sessionToken "Some token"
+                          enableContentResponseOnWrite true
                       }
 
                   check {
