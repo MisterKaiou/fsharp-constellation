@@ -222,3 +222,141 @@ type TransactionalBatchRequestOptionsBuilder() =
         opt
         
 let transactionalBatchRequestOptions = TransactionalBatchRequestOptionsBuilder()
+
+
+type CosmosClientOptionsBuilder() =
+    
+    member inline _.Yield _ = CosmosClientOptions()
+    
+    member inline _.Run(options: CosmosClientOptions) = options
+    
+    [<CustomOperation("allowBulkExecution")>]
+    member inline _.WithAllowBulkExecution(opt: CosmosClientOptions) =
+        opt.AllowBulkExecution <- true
+        opt
+        
+    [<CustomOperation("applicationName")>]
+    member inline _.WithApplicationName(opt: CosmosClientOptions, name) =
+        opt.ApplicationName <- name
+        opt
+        
+    [<CustomOperation("applicationPreferredRegions")>]
+    member inline _.WithApplicationPreferredRegions(opt: CosmosClientOptions, regions: string list) =
+        opt.ApplicationPreferredRegions <- regions
+        opt
+        
+    [<CustomOperation("applicationRegion")>]
+    member inline _.WithApplicationRegion(opt: CosmosClientOptions, region) =
+        opt.ApplicationRegion <- region
+        opt
+        
+    [<CustomOperation("connectionMode")>]
+    member inline _.WithConnectionMode(opt: CosmosClientOptions, mode) =
+        opt.ConnectionMode <- mode
+        opt
+        
+    [<CustomOperation("consistencyLevel")>]
+    member inline _.WithConsistencyLevel(opt: CosmosClientOptions, level) =
+        opt.ConsistencyLevel <- level
+        opt
+        
+    [<CustomOperation("enableContentResponseOnWrite")>]
+    member inline _.WithEnableContentResponseOnWrite(opt: CosmosClientOptions) =
+        opt.EnableContentResponseOnWrite <- true
+        opt
+        
+    [<CustomOperation("enableTcpConnectionEndpointRediscovery")>]
+    member inline _.WithEnableTcpConnectionEndpointRediscovery(opt: CosmosClientOptions) =
+        opt.EnableTcpConnectionEndpointRediscovery <- true
+        opt
+        
+    [<CustomOperation("gatewayModeMaxConnectionLimit")>]
+    member inline _.WithGatewayModeMaxConnectionLimit(opt: CosmosClientOptions, limit) =
+        opt.GatewayModeMaxConnectionLimit <- limit
+        opt
+        
+    [<CustomOperation("httpClientFactory")>]
+    member inline _.WithHttpClientFactory(opt: CosmosClientOptions, func) =
+        opt.HttpClientFactory <- func
+        opt
+        
+    [<CustomOperation("idleTcpConnectionTimeout")>]
+    member inline _.WithIdleTcpConnectionTimeout(opt: CosmosClientOptions, timeoutIn) =
+        opt.IdleTcpConnectionTimeout <- timeoutIn
+        opt
+        
+    [<CustomOperation("limitToEndpoint")>]
+    member inline _.WithLimitToEndpoint(opt: CosmosClientOptions) =
+        opt.LimitToEndpoint <- true
+        opt
+        
+    [<CustomOperation("maxRequestsPerTcpConnection")>]
+    member inline _.WithMaxRequestsPerTcpConnection(opt: CosmosClientOptions, maxCount) =
+        opt.MaxRequestsPerTcpConnection <- maxCount
+        opt
+        
+    [<CustomOperation("maxRetryAttemptsOnRateLimitedRequests")>]
+    member inline _.WithMaxRetryAttemptsOnRateLimitedRequests(opt: CosmosClientOptions, maxCount) =
+        opt.MaxRetryAttemptsOnRateLimitedRequests <- maxCount
+        opt
+
+    [<CustomOperation("maxRetryWaitTimeOnRateLimitedRequests")>]
+    member inline _.WithMaxRetryWaitTimeOnRateLimitedRequests(opt: CosmosClientOptions, maxWait) =
+        opt.MaxRetryWaitTimeOnRateLimitedRequests <- maxWait
+        opt
+
+            
+    [<CustomOperation("maxTcpConnectionsPerEndpoint")>]
+    member inline _.WithMaxTcpConnectionsPerEndpoint(opt: CosmosClientOptions, maxCount) =
+        opt.MaxTcpConnectionsPerEndpoint <- maxCount
+        opt
+
+    [<CustomOperation("openTcpConnectionTimeout")>]
+    member inline _.WithOpenTcpConnectionTimeout(opt: CosmosClientOptions, timeoutIn) =
+        opt.OpenTcpConnectionTimeout <- timeoutIn
+        opt
+
+    [<CustomOperation("portReuseMode")>]
+    member inline _.WithPortReuseMode(opt: CosmosClientOptions, mode) =
+        opt.PortReuseMode <- mode
+        opt
+        
+    [<CustomOperation("requestTimeout")>]
+    member inline _.WithRequestTimeout(opt: CosmosClientOptions, timeoutIn) =
+        opt.RequestTimeout <- timeoutIn
+        opt
+        
+    [<CustomOperation("serializer")>]
+    member inline _.WithSerializer(opt: CosmosClientOptions, serializer) =
+        opt.Serializer <- serializer
+        opt
+        
+    [<CustomOperation("serializerOptions")>]
+    member inline _.WithSerializerOptions(opt: CosmosClientOptions, options) =
+        opt.SerializerOptions <- options
+        opt
+
+let cosmosClientOptions = CosmosClientOptionsBuilder()
+
+type CosmosSerializationOptionsBuilder() =
+    
+    member inline _.Yield _ = CosmosSerializationOptions()
+    
+    member inline _.Run(options: CosmosSerializationOptions) = options
+    
+    [<CustomOperation("ignoreNullValues")>]
+    member inline _.WithIgnoreNullValues(opt: CosmosSerializationOptions) =
+        opt.IgnoreNullValues <- true
+        opt
+
+    [<CustomOperation("indented")>]
+    member inline _.WithIndented(opt: CosmosSerializationOptions) =
+        opt.Indented <- true
+        opt
+
+    [<CustomOperation("propertyNamingPolicy")>]
+    member inline _.WithPropertyNamingPolicy(opt: CosmosSerializationOptions, policy) =
+        opt.PropertyNamingPolicy <- policy
+        opt
+
+let cosmosSerializationOptions = CosmosSerializationOptionsBuilder()

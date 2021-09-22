@@ -1,5 +1,6 @@
 ﻿namespace Constellation.Tests
 
+open System
 open Microsoft.Azure.Cosmos.Scripts
 
 module TypeBuilderTests =
@@ -209,5 +210,88 @@ module TypeBuilderTests =
                       equal subject.SessionToken expected.SessionToken
                   }
                   |> Expect.isTrue
+                  <| "These objects should be equal"
+                  
+              testCase " A CosmosClientOptions and CosmosSerializationOptions computation expression should return the object as configured"
+              <| fun _ ->
+                  let serializerOptions = CosmosSerializationOptions()
+                  serializerOptions.Indented <- true
+                  serializerOptions.IgnoreNullValues <- true
+                  serializerOptions.PropertyNamingPolicy <- CosmosPropertyNamingPolicy.CamelCase
+                  
+                  let expected = CosmosClientOptions()
+                  //expected.HttpClientFactory will be left unset since it's a factory
+                  
+                  expected.ConsistencyLevel <- ConsistencyLevel.Eventual
+                  expected.AllowBulkExecution <- true
+                  expected.ApplicationName <- "Hello World"
+                  expected.ApplicationPreferredRegions <- ["Somewhere west"; "Somewhere South"]
+                  expected.ApplicationRegion <- "Middle"
+                  expected.ConnectionMode <- ConnectionMode.Direct
+                  expected.EnableContentResponseOnWrite <- true
+                  expected.EnableTcpConnectionEndpointRediscovery <- true
+                  expected.GatewayModeMaxConnectionLimit <- 42
+                  expected.IdleTcpConnectionTimeout <- TimeSpan(0, 0, 69)
+                  expected.LimitToEndpoint <- true
+                  expected.MaxRetryAttemptsOnRateLimitedRequests <- 7
+                  expected.MaxRetryWaitTimeOnRateLimitedRequests <- TimeSpan(0, 0, 13)
+                  expected.MaxTcpConnectionsPerEndpoint <- 2
+                  expected.OpenTcpConnectionTimeout <- TimeSpan(0, 0, 24)
+                  expected.PortReuseMode <- PortReuseMode.PrivatePortPool
+                  expected.RequestTimeout <- TimeSpan(0, 0, 79)
+                  expected.SerializerOptions <- serializerOptions
+
+                  let subject =
+                      cosmosClientOptions {
+                          consistencyLevel ConsistencyLevel.Eventual
+                          allowBulkExecution
+                          applicationName "Hello World"
+                          applicationPreferredRegions ["Somewhere west"; "Somewhere South"]
+                          applicationRegion "Middle"
+                          connectionMode ConnectionMode.Direct
+                          enableContentResponseOnWrite
+                          enableTcpConnectionEndpointRediscovery
+                          gatewayModeMaxConnectionLimit 42
+                          idleTcpConnectionTimeout (TimeSpan(0, 0, 69))
+                          limitToEndpoint
+                          maxRetryAttemptsOnRateLimitedRequests 7
+                          maxRetryWaitTimeOnRateLimitedRequests (TimeSpan(0, 0, 13))
+                          maxTcpConnectionsPerEndpoint 2
+                          openTcpConnectionTimeout (TimeSpan(0, 0, 24))
+                          portReuseMode PortReuseMode.PrivatePortPool
+                          requestTimeout (TimeSpan(0, 0, 79))
+                          serializerOptions (cosmosSerializationOptions {
+                              indented
+                              ignoreNullValues
+                              propertyNamingPolicy CosmosPropertyNamingPolicy.CamelCase
+                          })
+                      }
+
+                  check {
+                        equal subject.ConsistencyLevel expected.ConsistencyLevel
+                        equal subject.AllowBulkExecution expected.AllowBulkExecution
+                        equal subject.ApplicationName expected.ApplicationName
+                        equal subject.ApplicationPreferredRegions expected.ApplicationPreferredRegions
+                        equal subject.ApplicationRegion expected.ApplicationRegion
+                        equal subject.ConnectionMode expected.ConnectionMode
+                        equal subject.EnableContentResponseOnWrite expected.EnableContentResponseOnWrite
+                        equal subject.EnableTcpConnectionEndpointRediscovery expected.EnableTcpConnectionEndpointRediscovery
+                        equal subject.GatewayModeMaxConnectionLimit expected.GatewayModeMaxConnectionLimit
+                        equal subject.IdleTcpConnectionTimeout expected.IdleTcpConnectionTimeout
+                        equal subject.LimitToEndpoint expected.LimitToEndpoint
+                        equal subject.MaxRetryAttemptsOnRateLimitedRequests expected.MaxRetryAttemptsOnRateLimitedRequests
+                        equal subject.MaxRetryWaitTimeOnRateLimitedRequests expected.MaxRetryWaitTimeOnRateLimitedRequests
+                        equal subject.MaxTcpConnectionsPerEndpoint expected.MaxTcpConnectionsPerEndpoint
+                        equal subject.OpenTcpConnectionTimeout expected.OpenTcpConnectionTimeout
+                        equal subject.PortReuseMode expected.PortReuseMode
+                        equal subject.RequestTimeout expected.RequestTimeout
+                        isTrue (check {
+                            equal subject.SerializerOptions.Indented expected.SerializerOptions.Indented
+                            equal subject.SerializerOptions.IgnoreNullValues expected.SerializerOptions.IgnoreNullValues
+                            equal subject.SerializerOptions.PropertyNamingPolicy expected.SerializerOptions.PropertyNamingPolicy
+                        })
+                  }
+                  |> Expect.isTrue
                   <| "These objects should be equal" ]
+
 
