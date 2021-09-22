@@ -1,6 +1,5 @@
 ﻿module Constellation.TypeBuilders
 
-open System
 open Microsoft.Azure.Cosmos
 open Microsoft.Azure.Cosmos.Scripts
 

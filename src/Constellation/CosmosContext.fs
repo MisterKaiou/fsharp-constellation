@@ -12,7 +12,15 @@ open Constellation.TypeBuilders
 
 let defaultJsonSerializer =
     let options = JsonSerializerOptions()
-    options.Converters.Add(JsonFSharpConverter(unionEncoding = JsonUnionEncoding.FSharpLuLike))
+
+    options.Converters.Add(
+        JsonFSharpConverter(
+            unionEncoding =
+                (JsonUnionEncoding.FSharpLuLike
+                 ||| JsonUnionEncoding.NamedFields)
+        )
+    )
+
     options
 
 let private deserialize<'a> (stream: Stream) =
@@ -65,7 +73,7 @@ type CosmosContext private () =
     let mutable _databaseId = ""
 
     static let mutable _disposed = false
-    static let mutable _connectionMode = Undefined
+    static let mutable _authMode = Undefined
     static let mutable _client: CosmosClient = null
 
     member private this.setupContextClient(clientOptions: CosmosClientOptions option) =
@@ -77,7 +85,7 @@ type CosmosContext private () =
             | Some o -> o
             | None -> getDefaultOptions ()
 
-        match _connectionMode with
+        match _authMode with
         | ConnectionString s -> this.Client <- new CosmosClient(s, option)
         | AccountKey ei -> this.Client <- new CosmosClient(ei.Endpoint, ei.AccountKey, option)
         | _ -> ()
@@ -89,10 +97,10 @@ type CosmosContext private () =
         and private set v = _databaseId <- v
 
     member this.ConnectionMode
-        with get () = _connectionMode
+        with get () = _authMode
         and private set v =
-            if _connectionMode = Undefined then
-                _connectionMode <- v
+            if _authMode = Undefined then
+                _authMode <- v
             else
                 ()
 
