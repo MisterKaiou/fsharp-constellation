@@ -13,7 +13,7 @@ module AttributeTests =
         let subject = { StringProp = "Some" }
         let expected = Nullable(PartitionKey("Some"))
     
-        let result = PartitionKeyAttributeHelpers.getPartitionKeyFromType subject
+        let result = PartitionKeyAttributeHelpers.getPartitionKeyFrom subject
         Expect.equal result expected "Final result must be equal to expected value"
     
     type TestBooleanType = { [<PartitionKey>] BooleanProp: bool }
@@ -22,7 +22,7 @@ module AttributeTests =
         let subject = { BooleanProp = true }
         let expected = Nullable(PartitionKey(true))
     
-        let result = PartitionKeyAttributeHelpers.getPartitionKeyFromType subject
+        let result = PartitionKeyAttributeHelpers.getPartitionKeyFrom subject
         Expect.equal result expected "Final result must be equal to expected value"
     
     type TestFloatType = { [<PartitionKey>] FloatProp: double }
@@ -31,7 +31,7 @@ module AttributeTests =
         let subject = { FloatProp = 1.0 }
         let expected = Nullable(PartitionKey(1.0))
     
-        let result = PartitionKeyAttributeHelpers.getPartitionKeyFromType subject
+        let result = PartitionKeyAttributeHelpers.getPartitionKeyFrom subject
         Expect.equal result expected "Final result must be equal to expected value"
     
     type TestNoAttributeType = { SomeProp: int }
@@ -40,7 +40,7 @@ module AttributeTests =
         let subject = { SomeProp = 1 }
         
         Expect.throwsT<ArgumentNullException>
-            <| (fun _ -> PartitionKeyAttributeHelpers.getPartitionKeyFromType subject |> ignore)
+            <| (fun _ -> PartitionKeyAttributeHelpers.getPartitionKeyFrom subject |> ignore)
             <| "If no property has PartitionKeyAttribute, then it should throw an exception"
     
     type TestPropertyWithUnsupportedType = { [<PartitionKey>] UnsupportedProp: byte }
@@ -49,7 +49,7 @@ module AttributeTests =
         let subject = { UnsupportedProp = byte 5 }
         
         Expect.throwsT<ArgumentException>
-            <| (fun _ -> PartitionKeyAttributeHelpers.getPartitionKeyFromType subject |> ignore)
+            <| (fun _ -> PartitionKeyAttributeHelpers.getPartitionKeyFrom subject |> ignore)
             <| "If the type pf the property that has PartitionKeyAttribute is not bool, string or double, then it should throw an exception"
     
     [<Tests>]

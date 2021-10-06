@@ -6,6 +6,8 @@ module Constellation.Context
 open System
 open System.IO
 open System.Text.Json
+open Constalation
+open Constellation
 open Microsoft.Azure.Cosmos
 open System.Text.Json.Serialization
 open Constellation.TypeBuilders
@@ -115,6 +117,9 @@ type CosmosContext private () =
             else
                 ()
 
+    member this.GetContainer containerId =
+        ConstellationContainer.Container (this.Client.GetContainer(this.DatabaseId, containerId))
+    
     /// <summary>
     ///     Creates a new instance of the this class with a client configured to connect with endpoint and
     /// account key, if not already present.
@@ -158,10 +163,4 @@ type CosmosContext private () =
             else
                 ()
 
-type ConstellationContainer =
-    | Container of Container
-
-    member internal this.container =
-        this
-        |> function
-            | Container c -> c
+let geContainer containerId (ctx: CosmosContext) = ctx.GetContainer containerId

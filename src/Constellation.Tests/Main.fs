@@ -1,7 +1,6 @@
 ﻿namespace Constellation.Tests
 
 module Entry =
-
     open Expecto
     
     [<EntryPoint>]

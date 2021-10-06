@@ -17,8 +17,7 @@ module CosmosContextTests =
     *)
     [<Tests>]
     let cosmosContextTests =
-        testSequenced
-        <| testList
+        testList
             "CosmosContext Tests"
             [ testCase " A disposed Constellation Context should reflect on all instances"
               <| fun _ ->
@@ -33,7 +32,6 @@ module CosmosContextTests =
                   Expect.throwsT<ObjectDisposedException>
                   <| (fun _ -> subjectTwo.Client.ClientOptions |> ignore)
                   <| "Any operation should throw ObjectDisposedException on all instances"
-
 
               testCase " Only a single CosmosClient instance should exist"
               <| fun _ ->

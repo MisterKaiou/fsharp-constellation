@@ -17,8 +17,8 @@
     <ItemGroup>
         <PackageReference Include="Expecto" Version="9.*" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
-        <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.12.8" />
+        <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.12.9" />
         <ProjectReference Include="..\Constellation\Constellation.fsproj" />
-        <PackageReference Update="FSharp.Core" Version="5.0.2" />
+        <PackageReference Update="FSharp.Core" Version="6.0.0" />
     </ItemGroup>
 </Project>
