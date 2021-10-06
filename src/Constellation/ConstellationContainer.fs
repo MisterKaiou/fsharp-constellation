@@ -29,7 +29,7 @@ type ConstellationContainer =
         let token = cancelToken |> getCancelToken
 
         let getPk this =
-            PartitionKeyAttributeHelpers.getPartitionKeyFrom this
+            AttributeHelpers.getPartitionKeyFrom this
 
         let createItem item =
             let pk = getPk item
@@ -54,10 +54,10 @@ type ConstellationContainer =
         let token = cancelToken |> getCancelToken
 
         let id =
-            PartitionKeyAttributeHelpers.getIdFromTypeFrom item
+            AttributeHelpers.getIdFromTypeFrom item
 
         let partitionKey =
-            PartitionKeyAttributeHelpers.getPartitionKeyFrom item
+            AttributeHelpers.getPartitionKeyFrom item
 
         match Option.ofNullable partitionKey with
         | None -> 

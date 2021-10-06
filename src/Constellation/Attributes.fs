@@ -20,14 +20,14 @@ type IdAttribute() =
     inherit Attribute()
 
 [<RequireQualifiedAccess>]
-module PartitionKeyAttributeHelpers =
+module AttributeHelpers =
 
-    let private boxedNullCheck from = from |> box |> isNull |> not
+    let private isNullBoxing from = from |> box |> isNull
 
     let private partitionKeyFromProperty (from: obj) (prop: PropertyInfo) =
         let value = prop.GetValue(from)
 
-        if boxedNullCheck value then
+        if isNullBoxing value then
             Nullable<PartitionKey>()
         else
             match value with
@@ -46,7 +46,7 @@ module PartitionKeyAttributeHelpers =
         |> Array.choose
             (fun p ->
                 p.GetCustomAttribute<'a>()
-                |> boxedNullCheck
+                |> isNullBoxing = false
                 |> function
                     | true -> Some p
                     | false -> None)

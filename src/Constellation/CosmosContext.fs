@@ -40,7 +40,7 @@ let private deserialize<'a> (stream: Stream) =
 
 let private serialize input =
     let payload = new MemoryStream()
-    let options = JsonWriterOptions()
+    let options = JsonWriterOptions(Indented = false)
     use writer = new Utf8JsonWriter(payload, options)
 
     JsonSerializer.Serialize(writer, input, defaultJsonSerializer)
