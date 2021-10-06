@@ -163,4 +163,4 @@ type CosmosContext private () =
             else
                 ()
 
-let geContainer containerId (ctx: CosmosContext) = ctx.GetContainer containerId
+let getContainer containerId (ctx: CosmosContext) = ctx.GetContainer containerId
