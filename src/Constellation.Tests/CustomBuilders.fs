@@ -17,7 +17,7 @@ module CustomBuilders =
         member inline this.Equal(c, l, r) = this.Bind(c, (fun _ -> l = r))
         
         [<CustomOperation("isTrue")>]
-        member inline this.Then(c, r) = this.Bind(c, (fun _ -> r))
+        member inline this.IsTrue(c, r) = this.Bind(c, (fun _ -> r))
 
         [<CustomOperation("notEqual")>]
         member inline this.NotEqual(c, l, r) = this.Bind(c, (fun _ -> not (l = r)))
