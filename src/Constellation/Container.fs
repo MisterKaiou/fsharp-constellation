@@ -1,4 +1,4 @@
-﻿module Constalation.ConstellationContainer
+﻿module Constalation.Container
 
 open System
 open System.Threading

@@ -117,7 +117,7 @@ type CosmosContext private () =
         ()
 
   member this.GetContainer containerId =
-    ConstellationContainer.Container(this.Client.GetContainer(this.DatabaseId, containerId))
+    Container.Container(this.Client.GetContainer(this.DatabaseId, containerId))
 
   /// <summary>
   ///     Creates a new instance of the this class with a client configured to connect with endpoint and

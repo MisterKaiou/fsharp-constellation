@@ -7,11 +7,11 @@
         <RootNamespace>Constalation</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-        <Compile Include="Builders.fs"/>
-        <Compile Include="Attributes.fs"/>
-        <Compile Include="ResultBuilder.fs"/>
-        <Compile Include="ConstellationContainer.fs"/>
-        <Compile Include="CosmosContext.fs"/>
+        <Compile Include="Builders.fs" />
+        <Compile Include="Attributes.fs" />
+        <Compile Include="ResultBuilder.fs" />
+        <Compile Include="Container.fs" />
+        <Compile Include="CosmosContext.fs" />
     </ItemGroup>
-    <Import Project="..\..\.paket\Paket.Restore.targets"/>
+    <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
