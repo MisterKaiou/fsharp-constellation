@@ -2,24 +2,24 @@
 
 module CustomBuilders =
 
-    type CheckerBuilder() =
-        member inline _.Yield _ = true
+  type CheckerBuilder() =
+    member inline _.Yield _ = true
 
-        member inline _.Run(last) = last
+    member inline _.Run(last) = last
 
-        member inline _.Bind(m: bool, f) =
-            m
-            |> function
-                | true -> f m
-                | false -> m
+    member inline _.Bind(m: bool, f) =
+      m
+      |> function
+        | true -> f m
+        | false -> m
 
-        [<CustomOperation("equal")>]
-        member inline this.Equal(c, l, r) = this.Bind(c, (fun _ -> l = r))
-        
-        [<CustomOperation("isTrue")>]
-        member inline this.IsTrue(c, r) = this.Bind(c, (fun _ -> r))
+    [<CustomOperation("equal")>]
+    member inline this.Equal(c, l, r) = this.Bind(c, (fun _ -> l = r))
 
-        [<CustomOperation("notEqual")>]
-        member inline this.NotEqual(c, l, r) = this.Bind(c, (fun _ -> not (l = r)))
+    [<CustomOperation("isTrue")>]
+    member inline this.IsTrue(c, r) = this.Bind(c, (fun _ -> r))
 
-    let check = CheckerBuilder()
+    [<CustomOperation("notEqual")>]
+    member inline this.NotEqual(c, l, r) = this.Bind(c, (fun _ -> not (l = r)))
+
+  let check = CheckerBuilder()

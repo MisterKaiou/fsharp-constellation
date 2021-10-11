@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <GenerateProgramFile>false</GenerateProgramFile>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="CustomBuilders.fs" />
-    <Compile Include="AttributeTests.fs" />
-    <Compile Include="CosmosContextTests.fs" />
-    <Compile Include="TypeBuilderTests.fs" />
-    <Compile Include="Main.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Constellation\Constellation.fsproj" />
-  </ItemGroup>
-  <Import Project="..\..\.paket\Paket.Restore.targets" />
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <GenerateProgramFile>false</GenerateProgramFile>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Include="CustomBuilders.fs"/>
+        <Compile Include="AttributeTests.fs"/>
+        <Compile Include="CosmosContextTests.fs"/>
+        <Compile Include="TypeBuilderTests.fs"/>
+        <Compile Include="Main.fs"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Constellation\Constellation.fsproj"/>
+    </ItemGroup>
+    <Import Project="..\..\.paket\Paket.Restore.targets"/>
 </Project>

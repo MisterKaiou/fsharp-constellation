@@ -7,59 +7,58 @@ open System
 open System.IO
 open System.Text.Json
 open Constalation
-open Constellation
 open Microsoft.Azure.Cosmos
 open System.Text.Json.Serialization
 open Constellation.TypeBuilders
 
 let defaultJsonSerializer =
-    let options = JsonSerializerOptions()
+  let options = JsonSerializerOptions()
 
-    options.Converters.Add(
-        JsonFSharpConverter(
-            unionEncoding =
-                (JsonUnionEncoding.FSharpLuLike
-                 ||| JsonUnionEncoding.NamedFields)
-        )
+  options.Converters.Add(
+    JsonFSharpConverter(
+      unionEncoding =
+        (JsonUnionEncoding.FSharpLuLike
+         ||| JsonUnionEncoding.NamedFields)
     )
+  )
 
-    options
+  options
 
 let private deserialize<'a> (stream: Stream) =
-    try
-        if typeof<Stream>.IsAssignableFrom (typeof<'a>) then
-            (box stream) :?> 'a
-        else
-            use memoryStream = new MemoryStream()
-            stream.CopyTo(memoryStream)
-            let span = ReadOnlySpan(memoryStream.ToArray())
-            JsonSerializer.Deserialize(span, options = defaultJsonSerializer)
+  try
+    if typeof<Stream>.IsAssignableFrom (typeof<'a>) then
+      (box stream) :?> 'a
+    else
+      use memoryStream = new MemoryStream()
+      stream.CopyTo(memoryStream)
+      let span = ReadOnlySpan(memoryStream.ToArray())
+      JsonSerializer.Deserialize(span, options = defaultJsonSerializer)
 
-    finally
-        stream.Dispose()
+  finally
+    stream.Dispose()
 
 let private serialize input =
-    let payload = new MemoryStream()
-    let options = JsonWriterOptions(Indented = false)
-    use writer = new Utf8JsonWriter(payload, options)
+  let payload = new MemoryStream()
+  let options = JsonWriterOptions(Indented = false)
+  use writer = new Utf8JsonWriter(payload, options)
 
-    JsonSerializer.Serialize(writer, input, defaultJsonSerializer)
-    payload :> Stream
+  JsonSerializer.Serialize(writer, input, defaultJsonSerializer)
+  payload :> Stream
 
 let private defaultCosmosSerializer =
-    { new CosmosSerializer() with
-        member this.FromStream<'T>(stream: Stream) : 'T = deserialize stream
+  { new CosmosSerializer() with
+      member this.FromStream<'T>(stream: Stream) : 'T = deserialize stream
 
-        member this.ToStream<'T>(input: 'T) : Stream = serialize input }
+      member this.ToStream<'T>(input: 'T) : Stream = serialize input }
 
 type CosmosEndpointInfo =
-    { Endpoint: string
-      AccountKey: string }
+  { Endpoint: string
+    AccountKey: string }
 
 type ConnectionMode =
-    | ConnectionString of string
-    | AccountKey of CosmosEndpointInfo
-    | Undefined
+  | ConnectionString of string
+  | AccountKey of CosmosEndpointInfo
+  | Undefined
 
 /// <summary>
 ///     A wrapper around a single shared instance of CosmosClient. Providing a EF like usage for DI Containers.
@@ -72,95 +71,95 @@ type ConnectionMode =
 ///     application's lifetime.
 /// </remarks>
 type CosmosContext private () =
-    let mutable _databaseId = ""
+  let mutable _databaseId = ""
 
-    static let mutable _disposed = false
-    static let mutable _authMode = Undefined
-    static let mutable _client: CosmosClient = null
+  static let mutable _disposed = false
+  static let mutable _authMode = Undefined
+  static let mutable _client: CosmosClient = null
 
-    member private this.setupContextClient(clientOptions: CosmosClientOptions option) =
-        let getDefaultOptions () =
-            cosmosClientOptions { serializer defaultCosmosSerializer }
+  member private this.setupContextClient(clientOptions: CosmosClientOptions option) =
+    let getDefaultOptions () =
+      cosmosClientOptions { serializer defaultCosmosSerializer }
 
-        let option =
-            match clientOptions with
-            | Some o -> o
-            | None -> getDefaultOptions ()
+    let option =
+      match clientOptions with
+      | Some o -> o
+      | None -> getDefaultOptions ()
 
-        match _authMode with
-        | ConnectionString s -> this.Client <- new CosmosClient(s, option)
-        | AccountKey ei -> this.Client <- new CosmosClient(ei.Endpoint, ei.AccountKey, option)
-        | _ -> ()
+    match _authMode with
+    | ConnectionString s -> this.Client <- new CosmosClient(s, option)
+    | AccountKey ei -> this.Client <- new CosmosClient(ei.Endpoint, ei.AccountKey, option)
+    | _ -> ()
 
-        _disposed <- false
+    _disposed <- false
 
-    member this.DatabaseId
-        with get () = _databaseId
-        and private set v = _databaseId <- v
+  member this.DatabaseId
+    with get () = _databaseId
+    and private set v = _databaseId <- v
 
-    member this.ConnectionMode
-        with get () = _authMode
-        and private set v =
-            if _authMode = Undefined then
-                _authMode <- v
-            else
-                ()
+  member this.ConnectionMode
+    with get () = _authMode
+    and private set v =
+      if _authMode = Undefined then
+        _authMode <- v
+      else
+        ()
 
-    ///<summary>
-    ///     This shared CosmosClient. It's the same throughout all of <see cref="CosmosContext"></see>.
-    ///</summary>
-    member this.Client
-        with get () = _client
-        and private set v =
-            if _disposed || _client |> isNull then
-                _client <- v
-            else
-                ()
+  ///<summary>
+  ///     This shared CosmosClient. It's the same throughout all of <see cref="CosmosContext"></see>.
+  ///</summary>
+  member this.Client
+    with get () = _client
+    and private set v =
+      if _disposed || _client |> isNull then
+        _client <- v
+      else
+        ()
 
-    member this.GetContainer containerId =
-        ConstellationContainer.Container (this.Client.GetContainer(this.DatabaseId, containerId))
-    
-    /// <summary>
-    ///     Creates a new instance of the this class with a client configured to connect with endpoint and
-    /// account key, if not already present.
-    /// </summary>
-    /// <param name="clientOptions">
-    ///     The options with which to create the new client. If not specified, a default value with a custom
-    /// json parser will be used. (FSharp.SystemTextJson)
-    /// </param>
-    /// <param name="databaseId">The database at which this client points to</param>
-    /// <param name="cosmosEndpointInfo">This client's endpoint configuration</param>
-    new(cosmosEndpointInfo: CosmosEndpointInfo, databaseId, ?clientOptions: CosmosClientOptions) as this =
-        new CosmosContext()
-        then
-            this.ConnectionMode <- AccountKey cosmosEndpointInfo
-            this.DatabaseId <- databaseId
-            this.setupContextClient clientOptions
+  member this.GetContainer containerId =
+    ConstellationContainer.Container(this.Client.GetContainer(this.DatabaseId, containerId))
 
-    /// <summary>
-    ///     Creates a new instance of the this class with a client configured to connect with endpoint and
-    /// account key, if not already present.
-    /// </summary>
-    /// <param name="clientOptions">
-    ///     The options with which to create the new client. If not specified, a default value with a custom
-    /// json parser will be used. (FSharp.SystemTextJson)
-    /// </param>
-    /// <param name="databaseId">The database at which this client points to</param>
-    /// <param name="connString">This client's connection string</param>
-    new(connString, databaseId, ?clientOptions: CosmosClientOptions) as this =
-        new CosmosContext()
-        then
-            this.ConnectionMode <- ConnectionString connString
-            this.DatabaseId <- databaseId
-            this.setupContextClient clientOptions
+  /// <summary>
+  ///     Creates a new instance of the this class with a client configured to connect with endpoint and
+  /// account key, if not already present.
+  /// </summary>
+  /// <param name="clientOptions">
+  ///     The options with which to create the new client. If not specified, a default value with a custom
+  /// json parser will be used. (FSharp.SystemTextJson)
+  /// </param>
+  /// <param name="databaseId">The database at which this client points to</param>
+  /// <param name="cosmosEndpointInfo">This client's endpoint configuration</param>
+  new(cosmosEndpointInfo: CosmosEndpointInfo, databaseId, ?clientOptions: CosmosClientOptions) as this =
+    new CosmosContext()
+    then
+      this.ConnectionMode <- AccountKey cosmosEndpointInfo
+      this.DatabaseId <- databaseId
+      this.setupContextClient clientOptions
 
-    interface IDisposable with
-        member this.Dispose() =
-            if not _disposed then
-                _disposed <- true
-                this.Client.Dispose()
-                this.ConnectionMode <- Undefined
-            else
-                ()
+  /// <summary>
+  ///     Creates a new instance of the this class with a client configured to connect with endpoint and
+  /// account key, if not already present.
+  /// </summary>
+  /// <param name="clientOptions">
+  ///     The options with which to create the new client. If not specified, a default value with a custom
+  /// json parser will be used. (FSharp.SystemTextJson)
+  /// </param>
+  /// <param name="databaseId">The database at which this client points to</param>
+  /// <param name="connString">This client's connection string</param>
+  new(connString, databaseId, ?clientOptions: CosmosClientOptions) as this =
+    new CosmosContext()
+    then
+      this.ConnectionMode <- ConnectionString connString
+      this.DatabaseId <- databaseId
+      this.setupContextClient clientOptions
+
+  interface IDisposable with
+    member this.Dispose() =
+      if not _disposed then
+        _disposed <- true
+        this.Client.Dispose()
+        this.ConnectionMode <- Undefined
+      else
+        ()
 
 let getContainer containerId (ctx: CosmosContext) = ctx.GetContainer containerId
