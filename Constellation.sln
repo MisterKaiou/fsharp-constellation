@@ -1,6 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 #
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{271F9361-FF8C-4A5D-ADAF-5CABDA97ADC2}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+	EndProjectSection
+EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Constellation", "src\Constellation\Constellation.fsproj", "{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5DADC70F-1700-4945-9EFF-1C61EBF49DC5}"
