@@ -12,6 +12,7 @@
         <Compile Include="ResultBuilder.fs" />
         <Compile Include="Container.fs" />
         <Compile Include="CosmosContext.fs" />
+        <None Include="tests.fsx" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>
