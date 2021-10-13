@@ -7,7 +7,6 @@ open System
 open System.IO
 open System.Text.Json
 open Constellation.Attributes
-open Constellation.Container
 open Microsoft.Azure.Cosmos
 open System.Text.Json.Serialization
 open Constellation.TypeBuilders
@@ -120,7 +119,7 @@ type CosmosContext private () =
   member this.GetContainer(containerId) =
     Container.Container(this.Client.GetContainer(this.DatabaseId, containerId))
 
-  member this.GetContainer<'a>() : ConstellationContainer<'a> =
+  member this.GetContainer<'a>() : Container.ConstellationContainer<'a> =
     let containerId = AttributeHelpers.getContainerIdFromType<'a>
     
     Container.Container(this.Client.GetContainer(this.DatabaseId, containerId))

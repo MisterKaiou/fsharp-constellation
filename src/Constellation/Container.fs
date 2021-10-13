@@ -1,4 +1,5 @@
-﻿module Constellation.Container
+﻿[<RequireQualifiedAccess>]
+module Constellation.Container
 
 open System
 open System.Threading
@@ -6,6 +7,28 @@ open Constellation.Attributes
 open FSharp.Control
 open Microsoft.Azure.Cosmos
 open Constellation.Operators
+
+module Models =
+
+  type QueryParam = string * obj
+
+  type CosmosKeyModel<'a> =
+    { [<Id>]
+      Id: string
+      [<PartitionKey>]
+      PartitionKey: 'a }
+
+  type Query =
+    { Query: string
+      Parameters: QueryParam list }
+
+  type PendingOperation<'a> =
+    | Query of (unit -> AsyncSeq<FeedResponse<'a>>)
+    | Single of (unit -> Async<ItemResponse<'a>>)
+    | Delete of (unit -> AsyncSeq<ItemResponse<'a>>)
+    | Default of (unit -> AsyncSeq<ItemResponse<'a>>)
+
+open Models
 
 let private throwWhenPartitionKeyIsNull (partitionKey: Nullable<PartitionKey>) =
   partitionKey.HasValue
@@ -18,16 +41,6 @@ let private getCancelToken token =
   |> function
     | Some c -> c
     | None -> defaultArg token (CancellationToken())
-
-type CosmosKeyModel<'a> =
-  { [<Id>]
-    Id: string
-    [<PartitionKey>]
-    PartitionKey: 'a }
-
-type Query =
-  { Query: string
-    Parameters: (string * obj) list }
 
 type ConstellationContainer<'a> =
   | Container of Container
@@ -43,7 +56,7 @@ type ConstellationContainer<'a> =
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
     items
-    =
+    : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
@@ -56,10 +69,12 @@ type ConstellationContainer<'a> =
       this.container.CreateItemAsync(item, pk, options, token)
       |> Async.AwaitTask
 
-    match items with
-    | [ single ] -> [ createItem single ]
-    | many -> many |> List.map createItem
-    |> AsyncSeq.ofSeqAsync
+    Default
+    <| fun _ ->
+         match items with
+         | [ single ] -> [ createItem single ]
+         | many -> many |> List.map createItem
+         |> AsyncSeq.ofSeqAsync
 
   member this.InsertAsync items =
     items |> this.InsertWithOptionsAsync None None
@@ -70,7 +85,7 @@ type ConstellationContainer<'a> =
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
     (items: CosmosKeyModel<string> list)
-    =
+    : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
@@ -93,21 +108,24 @@ type ConstellationContainer<'a> =
         this.container.DeleteItemAsync(id, k, options, token)
         |> Async.AwaitTask
 
-    match items with
-    | [ single ] -> [ deleteItem single ]
-    | many -> many |> List.map deleteItem
-    |> AsyncSeq.ofSeqAsync
+    Delete
+    <| fun _ ->
+         match items with
+         | [ single ] -> [ deleteItem single ]
+         | many -> many |> List.map deleteItem
+         |> AsyncSeq.ofSeqAsync
+
 
   member this.DeleteItem item =
     this.DeleteItemWithOptions None None item
 
   (* ----------------------- Change ----------------------- *)
 
-  member this.ChangeItemWithOptions
+  member this.UpdateWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
     item
-    =
+    : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
@@ -115,11 +133,12 @@ type ConstellationContainer<'a> =
       item >|| AttributeHelpers.getIdFromTypeFrom
       <| AttributeHelpers.getPartitionKeyFrom
 
-    this.container.ReplaceItemAsync(item, id, partitionKey, options, token)
-    |> Async.AwaitTask
+    Single
+    <| fun _ ->
+         this.container.ReplaceItemAsync(item, id, partitionKey, options, token)
+         |> Async.AwaitTask
 
-  member this.ChangeItem item =
-    this.ChangeItemWithOptions None None item
+  member this.UpdateItem item = this.UpdateWithOptions None None item
 
   (* ----------------------- GetSingle ----------------------- *)
 
@@ -128,12 +147,14 @@ type ConstellationContainer<'a> =
     (cancelToken: CancellationToken option)
     id
     partitionKey
-    =
+    : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
-    this.container.ReadItemAsync(id, partitionKey, options, token)
-    |> Async.AwaitTask
+    Single
+    <| fun _ ->
+         this.container.ReadItemAsync(id, partitionKey, options, token)
+         |> Async.AwaitTask
 
   member this.GetItemWithOptionsFromItem
     (itemOptions: ItemRequestOptions option)
@@ -151,7 +172,7 @@ type ConstellationContainer<'a> =
   member this.GetItem id partitionKey =
     this.GetItemWithOptions None None id partitionKey
 
-  member this.GetItemFromItem(item: 'b) : Async<ItemResponse<'a>> =
+  member this.GetItemFromItem(item: 'b) =
     let id, partitionKey =
       item >|| AttributeHelpers.getIdFromTypeFrom
       <| AttributeHelpers.getPartitionKeyFrom
@@ -179,17 +200,22 @@ type ConstellationContainer<'a> =
     use iterator =
       this.container.GetItemQueryIterator<'a>(definition, contToken, options)
 
-    iterator
-    |> AsyncSeq.unfoldAsync
-        (fun state ->
-            async {
-              match state.HasMoreResults with
-              | false -> return None
-              | true ->
-                  let a =
-                    state.ReadNextAsync(token) |> Async.AwaitTask |> Async.RunSynchronously
-                  return Some (a.Resource, state)
-            } )
+    Query
+    <| fun _ ->
+         iterator
+         |> AsyncSeq.unfold
+              (fun state ->
+                printfn "Should be called before AsyncSeq iter"
+
+                match state.HasMoreResults with
+                | false -> None
+                | true ->
+                  let next =
+                    state.ReadNextAsync(token)
+                    |> Async.AwaitTask
+                    |> Async.RunSynchronously
+
+                  Some(next, state))
 
   member this.Query(query: Query) =
     this.QueryItemsWithOptions None None None query
@@ -211,9 +237,9 @@ let deleteItemWithOptions itemOption cancelToken item (container: ConstellationC
 (* ----------------------- Change ----------------------- *)
 
 let changeWithOptions itemOptions cancelToken item (container: ConstellationContainer<'a>) =
-  container.ChangeItemWithOptions itemOptions cancelToken item
+  container.UpdateWithOptions itemOptions cancelToken item
 
-let changeItem item (container: ConstellationContainer<'a>) = container.ChangeItem item
+let changeItem item (container: ConstellationContainer<'a>) = container.UpdateItem item
 
 (* ----------------------- GetSingle ----------------------- *)
 
@@ -247,4 +273,44 @@ let queryItemsWithOptions
   =
   container.QueryItemsWithOptions queryOptions continuationToken cancelToken query
 
-let query (query: Query) (container: ConstellationContainer<'a>) = container.Query query
+type FluentQuery<'a> =
+  { Container: ConstellationContainer<'a>
+    QueryText: string
+    Parameters: QueryParam list }
+
+let query query (container: ConstellationContainer<'a>) =
+  { Container = container
+    QueryText = query
+    Parameters = [] }
+
+let withParameters<'a> params' (query: FluentQuery<'a>) = { query with Parameters = params' }
+
+let execQueryWrapped query =
+  query.Container.Query
+    { Query = query.QueryText
+      Parameters = query.Parameters }
+  |> function
+    | Query q -> q ()
+    | _ -> failwith "This case should have not been hit!"
+
+let execAsyncWrapped<'a> (pending: PendingOperation<'a>) =
+  match pending with
+  | Single s -> [ s () ] |> AsyncSeq.ofSeqAsync
+  | Default f -> f ()
+  | Delete d -> d ()
+  | Query _ ->
+    failwith "Wrapped results for query execution must be obtained thought the dedicated method 'execQueryWrapped'"
+
+let execAsync<'a> (pending: PendingOperation<'a>) =
+  match pending with
+  | Query q ->
+    q ()
+    |> AsyncSeq.collect (fun item -> item.Resource |> AsyncSeq.ofSeq)
+  | Single s ->
+    [ s () ]
+    |> AsyncSeq.ofSeqAsync
+    |> AsyncSeq.map (fun item -> item.Resource)
+  | Delete _ ->
+    []
+    |> AsyncSeq.ofSeq (* For delete operations, cosmos return null instead of a usable resource *)
+  | Default f -> f () |> AsyncSeq.map (fun item -> item.Resource)
