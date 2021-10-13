@@ -18,6 +18,14 @@ type PartitionKeyAttribute() =
 type IdAttribute() =
   inherit Attribute()
 
+[<AttributeUsage(AttributeTargets.Class,
+                 AllowMultiple = false,
+                 Inherited = true)>]
+type ContainerAttribute(Name: string) =
+  inherit Attribute()
+  
+  member this.Name = Name
+
 [<RequireQualifiedAccess>]
 module AttributeHelpers =
 
@@ -78,3 +86,19 @@ module AttributeHelpers =
       match p.GetValue(obj) with
       | :? string as s -> s
       | _ -> raise (ArgumentException(nameof obj, "The given object had an invalid Id field, must be of type string")))
+
+  let getContainerIdFromType<'a> =
+    let attr =
+      typeof<'a>.GetCustomAttribute<ContainerAttribute>(false)
+      
+    attr
+    |> isNullBoxing
+    |> function
+       | false -> attr.Name
+       | true ->
+          raise (
+            ArgumentNullException(
+              nameof obj,
+              "The given obj does not contain a property or field with PartitionKey Attribute"
+            )
+          )
