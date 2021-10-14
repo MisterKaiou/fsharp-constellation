@@ -9,12 +9,12 @@ type RequestOptionsBuilder() =
 
   member inline _.Run(options: #RequestOptions) = options
 
-  [<CustomOperation("ifMatchEtag")>]
+  [<CustomOperation("if_match_etag")>]
   member inline _.WithIfMatchEtag(requestOption: #RequestOptions, tag) =
     requestOption.IfMatchEtag <- tag
     requestOption
 
-  [<CustomOperation("ifNoneMatchEtag")>]
+  [<CustomOperation("if_none_match_etag")>]
   member inline _.WithIfNoneMatchEtag(requestOption: #RequestOptions, tag) =
     requestOption.IfNoneMatchEtag <- tag
     requestOption
@@ -32,32 +32,32 @@ type ItemRequestOptionsBuilder() =
 
   member inline _.Yield _ = ItemRequestOptions()
 
-  [<CustomOperation("preTriggers")>]
+  [<CustomOperation("pre_triggers")>]
   member inline _.WithPreTriggers(options: ItemRequestOptions, triggers: string list) =
     options.PreTriggers <- triggers
     options
 
-  [<CustomOperation("postTriggers")>]
+  [<CustomOperation("post_triggers")>]
   member inline _.WithPostTriggers(options: ItemRequestOptions, triggers: string list) =
     options.PostTriggers <- triggers
     options
 
-  [<CustomOperation("indexingDirective")>]
+  [<CustomOperation("indexing_directive")>]
   member inline _.WithIndexingDirective(options: ItemRequestOptions, directive: IndexingDirective) =
     options.IndexingDirective <- directive
     options
 
-  [<CustomOperation("consistencyLevel")>]
+  [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(options: ItemRequestOptions, level: ConsistencyLevel) =
     options.ConsistencyLevel <- level
     options
 
-  [<CustomOperation("sessionToken")>]
+  [<CustomOperation("session_token")>]
   member inline _.WithSessionToken(options: ItemRequestOptions, token: string) =
     options.SessionToken <- token
     options
 
-  [<CustomOperation("enableContentResponseOnWrite")>]
+  [<CustomOperation("enable_content_response_on_write")>]
   member inline _.WithEnableContentResponseOnWrite(options: ItemRequestOptions) =
     options.EnableContentResponseOnWrite <- true
     options
@@ -71,7 +71,7 @@ type ChangeFeedRequestOptionsBuilder() =
 
   member inline _.Run(last) = last
 
-  [<CustomOperation("pageSizeHint")>]
+  [<CustomOperation("page_size_hint")>]
   member inline _.WithPageSizeHint(options: ChangeFeedRequestOptions, pageSize) =
     options.PageSizeHint <- pageSize
     options
@@ -84,7 +84,7 @@ type ContainerRequestOptionsBuilder() =
 
   member inline _.Yield _ = ContainerRequestOptions()
 
-  [<CustomOperation("populateQuota")>]
+  [<CustomOperation("populate_quota_info")>]
   member inline _.WithQuota(opt: ContainerRequestOptions) =
     opt.PopulateQuotaInfo <- true
     opt
@@ -97,52 +97,52 @@ type QueryRequestOptionsBuilder() =
 
   member inline _.Yield _ = QueryRequestOptions()
 
-  [<CustomOperation("consistencyLevel")>]
+  [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: QueryRequestOptions, level) =
     opt.ConsistencyLevel <- level
     opt
 
-  [<CustomOperation("enableLowPrecisionOrderBy")>]
+  [<CustomOperation("enable_low_precision_order_by")>]
   member inline _.WithEnableLowPrecisionOrderBy(opt: QueryRequestOptions) =
     opt.EnableLowPrecisionOrderBy <- true
     opt
 
-  [<CustomOperation("enableScanInQuery")>]
+  [<CustomOperation("enable_scan_in_query")>]
   member inline _.WithEnableScanInQuery(opt: QueryRequestOptions) =
     opt.EnableScanInQuery <- true
     opt
 
-  [<CustomOperation("maxBufferedItemCount")>]
+  [<CustomOperation("max_buffered_item_count")>]
   member inline _.WithMaxBufferedItemCount(opt: QueryRequestOptions, count) =
     opt.MaxBufferedItemCount <- count
     opt
 
-  [<CustomOperation("maxConcurrency")>]
+  [<CustomOperation("max_concurrency")>]
   member inline _.WithMaxConcurrency(opt: QueryRequestOptions, count) =
     opt.MaxConcurrency <- count
     opt
 
-  [<CustomOperation("maxItemCount")>]
+  [<CustomOperation("max_item_count")>]
   member inline _.WithMaxItemCount(opt: QueryRequestOptions, count) =
     opt.MaxItemCount <- count
     opt
 
-  [<CustomOperation("partitionKey")>]
+  [<CustomOperation("partition_key")>]
   member inline _.WithPartitionKey(opt: QueryRequestOptions, partitionKey) =
     opt.PartitionKey <- partitionKey
     opt
 
-  [<CustomOperation("populateIndexMetrics")>]
+  [<CustomOperation("populate_index_metrics")>]
   member inline _.WithPopulateIndexMetrics(opt: QueryRequestOptions) =
     opt.PopulateIndexMetrics <- true
     opt
 
-  [<CustomOperation("responseContinuationTokenLimitInKb")>]
+  [<CustomOperation("response_continuation_token_limit_in_kb")>]
   member inline _.WithResponseContinuationTokenLimitInKb(opt: QueryRequestOptions, limit) =
     opt.ResponseContinuationTokenLimitInKb <- limit
     opt
 
-  [<CustomOperation("sessionToken")>]
+  [<CustomOperation("session_token")>]
   member inline _.WithSessionToken(opt: QueryRequestOptions, token) =
     opt.SessionToken <- token
     opt
@@ -154,12 +154,12 @@ type ReadManyRequestOptionsBuilder() =
 
   member inline _.Yield _ = ReadManyRequestOptions()
 
-  [<CustomOperation("sessionToken")>]
+  [<CustomOperation("session_token")>]
   member inline _.WithSessionToken(opt: ReadManyRequestOptions, token) =
     opt.SessionToken <- token
     opt
 
-  [<CustomOperation("consistencyLevel")>]
+  [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: ReadManyRequestOptions, level) =
     opt.ConsistencyLevel <- level
     opt
@@ -171,17 +171,17 @@ type StorageProcedureRequestOptionsBuilder() =
 
   member inline _.Yield _ = StoredProcedureRequestOptions()
 
-  [<CustomOperation("sessionToken")>]
+  [<CustomOperation("session_token")>]
   member inline _.WithSessionToken(opt: StoredProcedureRequestOptions, token) =
     opt.SessionToken <- token
     opt
 
-  [<CustomOperation("consistencyLevel")>]
+  [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: StoredProcedureRequestOptions, level) =
     opt.ConsistencyLevel <- level
     opt
 
-  [<CustomOperation("enableScriptLogging")>]
+  [<CustomOperation("enableScript_logging")>]
   member inline _.WithEnableScriptLogging(opt: StoredProcedureRequestOptions) =
     opt.EnableScriptLogging <- true
     opt
@@ -193,12 +193,12 @@ type TransactionalBatchItemRequestOptionsBuilder() =
 
   member inline _.Yield _ = TransactionalBatchItemRequestOptions()
 
-  [<CustomOperation("enableContentResponseOnWrite")>]
+  [<CustomOperation("enable_content_response_on_write")>]
   member inline _.WithEnableContentResponseOnWrite(opt: TransactionalBatchItemRequestOptions) =
     opt.EnableContentResponseOnWrite <- true
     opt
 
-  [<CustomOperation("indexingDirective")>]
+  [<CustomOperation("indexing_directive")>]
   member inline _.WithIndexingDirective(opt: TransactionalBatchItemRequestOptions, directive) =
     opt.IndexingDirective <- directive
     opt
@@ -211,12 +211,12 @@ type TransactionalBatchRequestOptionsBuilder() =
 
   member inline _.Yield _ = TransactionalBatchRequestOptions()
 
-  [<CustomOperation("consistencyLevel")>]
+  [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: TransactionalBatchRequestOptions, level) =
     opt.ConsistencyLevel <- level
     opt
 
-  [<CustomOperation("sessionToken")>]
+  [<CustomOperation("session_token")>]
   member inline _.WithSessionToken(opt: TransactionalBatchRequestOptions, token) =
     opt.SessionToken <- token
     opt
@@ -231,98 +231,98 @@ type CosmosClientOptionsBuilder() =
 
   member inline _.Run(options: CosmosClientOptions) = options
 
-  [<CustomOperation("allowBulkExecution")>]
+  [<CustomOperation("allow_bulk_execution")>]
   member inline _.WithAllowBulkExecution(opt: CosmosClientOptions) =
     opt.AllowBulkExecution <- true
     opt
 
-  [<CustomOperation("applicationName")>]
+  [<CustomOperation("application_name")>]
   member inline _.WithApplicationName(opt: CosmosClientOptions, name) =
     opt.ApplicationName <- name
     opt
 
-  [<CustomOperation("applicationPreferredRegions")>]
+  [<CustomOperation("application_preferred_regions")>]
   member inline _.WithApplicationPreferredRegions(opt: CosmosClientOptions, regions: string list) =
     opt.ApplicationPreferredRegions <- regions
     opt
 
-  [<CustomOperation("applicationRegion")>]
+  [<CustomOperation("application_region")>]
   member inline _.WithApplicationRegion(opt: CosmosClientOptions, region) =
     opt.ApplicationRegion <- region
     opt
 
-  [<CustomOperation("connectionMode")>]
+  [<CustomOperation("connection_mode")>]
   member inline _.WithConnectionMode(opt: CosmosClientOptions, mode) =
     opt.ConnectionMode <- mode
     opt
 
-  [<CustomOperation("consistencyLevel")>]
+  [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: CosmosClientOptions, level) =
     opt.ConsistencyLevel <- level
     opt
 
-  [<CustomOperation("enableContentResponseOnWrite")>]
+  [<CustomOperation("enable_content_response_on_write")>]
   member inline _.WithEnableContentResponseOnWrite(opt: CosmosClientOptions) =
     opt.EnableContentResponseOnWrite <- true
     opt
 
-  [<CustomOperation("enableTcpConnectionEndpointRediscovery")>]
+  [<CustomOperation("enable_tcp_connection_endpoint_rediscovery")>]
   member inline _.WithEnableTcpConnectionEndpointRediscovery(opt: CosmosClientOptions) =
     opt.EnableTcpConnectionEndpointRediscovery <- true
     opt
 
-  [<CustomOperation("gatewayModeMaxConnectionLimit")>]
+  [<CustomOperation("gateway_mode_max_connection_limit")>]
   member inline _.WithGatewayModeMaxConnectionLimit(opt: CosmosClientOptions, limit) =
     opt.GatewayModeMaxConnectionLimit <- limit
     opt
 
-  [<CustomOperation("httpClientFactory")>]
+  [<CustomOperation("http_client_factory")>]
   member inline _.WithHttpClientFactory(opt: CosmosClientOptions, func) =
     opt.HttpClientFactory <- func
     opt
 
-  [<CustomOperation("idleTcpConnectionTimeout")>]
+  [<CustomOperation("idle_tcp_connection_timeout")>]
   member inline _.WithIdleTcpConnectionTimeout(opt: CosmosClientOptions, timeoutIn) =
     opt.IdleTcpConnectionTimeout <- timeoutIn
     opt
 
-  [<CustomOperation("limitToEndpoint")>]
+  [<CustomOperation("limit_to_endpoint")>]
   member inline _.WithLimitToEndpoint(opt: CosmosClientOptions) =
     opt.LimitToEndpoint <- true
     opt
 
-  [<CustomOperation("maxRequestsPerTcpConnection")>]
+  [<CustomOperation("max_requests_per_tcp_connection")>]
   member inline _.WithMaxRequestsPerTcpConnection(opt: CosmosClientOptions, maxCount) =
     opt.MaxRequestsPerTcpConnection <- maxCount
     opt
 
-  [<CustomOperation("maxRetryAttemptsOnRateLimitedRequests")>]
+  [<CustomOperation("max_retry_attempts_on_rate_limited_requests")>]
   member inline _.WithMaxRetryAttemptsOnRateLimitedRequests(opt: CosmosClientOptions, maxCount) =
     opt.MaxRetryAttemptsOnRateLimitedRequests <- maxCount
     opt
 
-  [<CustomOperation("maxRetryWaitTimeOnRateLimitedRequests")>]
+  [<CustomOperation("max_retry_wait_time_on_rate_limited_requests")>]
   member inline _.WithMaxRetryWaitTimeOnRateLimitedRequests(opt: CosmosClientOptions, maxWait) =
     opt.MaxRetryWaitTimeOnRateLimitedRequests <- maxWait
     opt
 
 
-  [<CustomOperation("maxTcpConnectionsPerEndpoint")>]
+  [<CustomOperation("max_tcp_connections_per_endpoint")>]
   member inline _.WithMaxTcpConnectionsPerEndpoint(opt: CosmosClientOptions, maxCount) =
     opt.MaxTcpConnectionsPerEndpoint <- maxCount
     opt
 
-  [<CustomOperation("openTcpConnectionTimeout")>]
+  [<CustomOperation("open_tcp_connection_timeout")>]
   member inline _.WithOpenTcpConnectionTimeout(opt: CosmosClientOptions, timeoutIn) =
     opt.OpenTcpConnectionTimeout <- timeoutIn
     opt
 
-  [<CustomOperation("portReuseMode")>]
+  [<CustomOperation("port_reuse_mode")>]
   member inline _.WithPortReuseMode(opt: CosmosClientOptions, mode) =
     opt.PortReuseMode <- mode
     opt
 
-  [<CustomOperation("requestTimeout")>]
+  [<CustomOperation("request_timeout")>]
   member inline _.WithRequestTimeout(opt: CosmosClientOptions, timeoutIn) =
     opt.RequestTimeout <- timeoutIn
     opt
@@ -332,7 +332,7 @@ type CosmosClientOptionsBuilder() =
     opt.Serializer <- serializer
     opt
 
-  [<CustomOperation("serializerOptions")>]
+  [<CustomOperation("serializer_options")>]
   member inline _.WithSerializerOptions(opt: CosmosClientOptions, options) =
     opt.SerializerOptions <- options
     opt
@@ -345,7 +345,7 @@ type CosmosSerializationOptionsBuilder() =
 
   member inline _.Run(options: CosmosSerializationOptions) = options
 
-  [<CustomOperation("ignoreNullValues")>]
+  [<CustomOperation("ignore_null_values")>]
   member inline _.WithIgnoreNullValues(opt: CosmosSerializationOptions) =
     opt.IgnoreNullValues <- true
     opt
@@ -355,7 +355,7 @@ type CosmosSerializationOptionsBuilder() =
     opt.Indented <- true
     opt
 
-  [<CustomOperation("propertyNamingPolicy")>]
+  [<CustomOperation("property_naming_policy")>]
   member inline _.WithPropertyNamingPolicy(opt: CosmosSerializationOptions, policy) =
     opt.PropertyNamingPolicy <- policy
     opt

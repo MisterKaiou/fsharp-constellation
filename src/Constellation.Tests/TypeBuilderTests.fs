@@ -22,8 +22,8 @@ module TypeBuilderTests =
 
              let subject =
                requestOptions {
-                 ifMatchEtag "Some Tag"
-                 ifNoneMatchEtag "Some other tag"
+                 if_match_etag "Some Tag"
+                 if_none_match_etag "Some other tag"
                }
 
              check {
@@ -47,14 +47,14 @@ module TypeBuilderTests =
 
              let subject =
                itemRequestOptions {
-                 ifMatchEtag "Some tag"
-                 ifNoneMatchEtag "Some other tag"
-                 preTriggers [ "Some pre-triggers list" ]
-                 postTriggers [ "Some post-triggers list" ]
-                 indexingDirective IndexingDirective.Include
-                 consistencyLevel ConsistencyLevel.BoundedStaleness
-                 sessionToken "Some token"
-                 enableContentResponseOnWrite
+                 if_match_etag "Some tag"
+                 if_none_match_etag "Some other tag"
+                 pre_triggers [ "Some pre-triggers list" ]
+                 post_triggers [ "Some post-triggers list" ]
+                 indexing_directive IndexingDirective.Include
+                 consistency_level ConsistencyLevel.BoundedStaleness
+                 session_token "Some token"
+                 enable_content_response_on_write
                }
 
              check {
@@ -76,7 +76,7 @@ module TypeBuilderTests =
              expected.PageSizeHint <- 5
 
              let subject =
-               changeFeedRequestOptions { pageSizeHint 5 }
+               changeFeedRequestOptions { page_size_hint 5 }
 
              Expect.equal subject.PageSizeHint expected.PageSizeHint "These properties should be equal"
 
@@ -86,7 +86,7 @@ module TypeBuilderTests =
              expected.PopulateQuotaInfo <- true
 
              let subject =
-               containerRequestOptions { populateQuota }
+               containerRequestOptions { populate_quota_info }
 
              Expect.equal subject.PopulateQuotaInfo expected.PopulateQuotaInfo "These properties should be equal"
 
@@ -106,16 +106,16 @@ module TypeBuilderTests =
 
              let subject =
                queryRequestOptions {
-                 consistencyLevel ConsistencyLevel.Eventual
-                 enableLowPrecisionOrderBy
-                 enableScanInQuery
-                 maxBufferedItemCount 5
-                 maxConcurrency 10
-                 maxItemCount 20
-                 partitionKey (PartitionKey("Key"))
-                 populateIndexMetrics
-                 responseContinuationTokenLimitInKb 500
-                 sessionToken "Some token"
+                 consistency_level ConsistencyLevel.Eventual
+                 enable_low_precision_order_by
+                 enable_scan_in_query
+                 max_buffered_item_count 5
+                 max_concurrency 10
+                 max_item_count 20
+                 partition_key (PartitionKey("Key"))
+                 populate_index_metrics
+                 response_continuation_token_limit_in_kb 500
+                 session_token "Some token"
                }
 
              check {
@@ -141,8 +141,8 @@ module TypeBuilderTests =
 
              let subject =
                readManyRequestOptions {
-                 sessionToken "Some token"
-                 consistencyLevel ConsistencyLevel.Eventual
+                 session_token "Some token"
+                 consistency_level ConsistencyLevel.Eventual
                }
 
              check {
@@ -161,9 +161,9 @@ module TypeBuilderTests =
 
              let subject =
                storageProcedureRequestOptions {
-                 sessionToken "Some token"
-                 consistencyLevel ConsistencyLevel.Eventual
-                 enableScriptLogging
+                 session_token "Some token"
+                 consistency_level ConsistencyLevel.Eventual
+                 enableScript_logging
                }
 
              check {
@@ -182,8 +182,8 @@ module TypeBuilderTests =
 
              let subject =
                transactionalBatchItemRequestOptions {
-                 enableContentResponseOnWrite
-                 indexingDirective IndexingDirective.Include
+                 enable_content_response_on_write
+                 indexing_directive IndexingDirective.Include
                }
 
              check {
@@ -201,8 +201,8 @@ module TypeBuilderTests =
 
              let subject =
                transactionalBatchRequestOptions {
-                 sessionToken "Some token"
-                 consistencyLevel ConsistencyLevel.Eventual
+                 session_token "Some token"
+                 consistency_level ConsistencyLevel.Eventual
                }
 
              check {
@@ -244,32 +244,32 @@ module TypeBuilderTests =
 
              let subject =
                cosmosClientOptions {
-                 consistencyLevel ConsistencyLevel.Eventual
-                 allowBulkExecution
-                 applicationName "Hello World"
+                 consistency_level ConsistencyLevel.Eventual
+                 allow_bulk_execution
+                 application_name "Hello World"
 
-                 applicationPreferredRegions [ "Somewhere west"
-                                               "Somewhere South" ]
+                 application_preferred_regions [ "Somewhere west"
+                                                 "Somewhere South" ]
 
-                 applicationRegion "Middle"
-                 connectionMode ConnectionMode.Direct
-                 enableContentResponseOnWrite
-                 enableTcpConnectionEndpointRediscovery
-                 gatewayModeMaxConnectionLimit 42
-                 idleTcpConnectionTimeout (TimeSpan(0, 0, 69))
-                 limitToEndpoint
-                 maxRetryAttemptsOnRateLimitedRequests 7
-                 maxRetryWaitTimeOnRateLimitedRequests (TimeSpan(0, 0, 13))
-                 maxTcpConnectionsPerEndpoint 2
-                 openTcpConnectionTimeout (TimeSpan(0, 0, 24))
-                 portReuseMode PortReuseMode.PrivatePortPool
-                 requestTimeout (TimeSpan(0, 0, 79))
+                 application_region "Middle"
+                 connection_mode ConnectionMode.Direct
+                 enable_content_response_on_write
+                 enable_tcp_connection_endpoint_rediscovery
+                 gateway_mode_max_connection_limit 42
+                 idle_tcp_connection_timeout (TimeSpan(0, 0, 69))
+                 limit_to_endpoint
+                 max_retry_attempts_on_rate_limited_requests 7
+                 max_retry_wait_time_on_rate_limited_requests (TimeSpan(0, 0, 13))
+                 max_tcp_connections_per_endpoint 2
+                 open_tcp_connection_timeout (TimeSpan(0, 0, 24))
+                 port_reuse_mode PortReuseMode.PrivatePortPool
+                 request_timeout (TimeSpan(0, 0, 79))
 
-                 serializerOptions (
+                 serializer_options (
                    cosmosSerializationOptions {
                      indented
-                     ignoreNullValues
-                     propertyNamingPolicy CosmosPropertyNamingPolicy.CamelCase
+                     ignore_null_values
+                     property_naming_policy CosmosPropertyNamingPolicy.CamelCase
                    }
                  )
                }
@@ -293,7 +293,7 @@ module TypeBuilderTests =
                equal subject.PortReuseMode expected.PortReuseMode
                equal subject.RequestTimeout expected.RequestTimeout
 
-               isTrue (
+               is_true (
                  check {
                    equal subject.SerializerOptions.Indented expected.SerializerOptions.Indented
                    equal subject.SerializerOptions.IgnoreNullValues expected.SerializerOptions.IgnoreNullValues
