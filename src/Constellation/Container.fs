@@ -119,7 +119,7 @@ type ConstellationContainer<'a> =
   member this.DeleteItem item =
     this.DeleteItemWithOptions None None item
 
-  (* ----------------------- Change ----------------------- *)
+  (* ----------------------- Update ----------------------- *)
 
   member this.UpdateWithOptions
     (itemOptions: ItemRequestOptions option)
@@ -262,12 +262,14 @@ let getItemWithOptionsFromItem
 
 let getItemFromItem item (container: ConstellationContainer<'a>) = container.GetItemFromItem item
 
+let getItem id partitionKey (container: ConstellationContainer<'a>) = container.GetItem id partitionKey
+
 (* ----------------------- Query ----------------------- *)
 
 let queryItemsWithOptions
   (queryOptions: QueryRequestOptions option)
-  (continuationToken: string option)
   (cancelToken: CancellationToken option)
+  (continuationToken: string option)
   (query: Query)
   (container: ConstellationContainer<'a>)
   =
@@ -283,7 +285,14 @@ let query query (container: ConstellationContainer<'a>) =
     QueryText = query
     Parameters = [] }
 
-let withParameters<'a> params' (query: FluentQuery<'a>) = { query with Parameters = params' }
+let parameterlessQuery query (container: ConstellationContainer<'a>) =
+  let q = { Query = query; Parameters = [] }
+  container.Query q
+
+let withParameters<'a> params' (query: FluentQuery<'a>) =
+  let fq = { query with Parameters = params' }
+  let q = { Query = fq.QueryText; Parameters = fq.Parameters }
+  query.Container.Query q
 
 let execQueryWrapped query =
   query.Container.Query

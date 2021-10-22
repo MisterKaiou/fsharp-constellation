@@ -149,6 +149,7 @@ type QueryRequestOptionsBuilder() =
 
 let queryRequestOptions = QueryRequestOptionsBuilder()
 
+[<Sealed>]
 type ReadManyRequestOptionsBuilder() =
   inherit RequestOptions()
 
@@ -166,6 +167,7 @@ type ReadManyRequestOptionsBuilder() =
 
 let readManyRequestOptions = ReadManyRequestOptionsBuilder()
 
+[<Sealed>]
 type StorageProcedureRequestOptionsBuilder() =
   inherit RequestOptions()
 
@@ -188,6 +190,7 @@ type StorageProcedureRequestOptionsBuilder() =
 
 let storageProcedureRequestOptions = StorageProcedureRequestOptionsBuilder()
 
+[<Sealed>]
 type TransactionalBatchItemRequestOptionsBuilder() =
   inherit RequestOptionsBuilder()
 
@@ -206,6 +209,7 @@ type TransactionalBatchItemRequestOptionsBuilder() =
 let transactionalBatchItemRequestOptions =
   TransactionalBatchItemRequestOptionsBuilder()
 
+[<Sealed>]
 type TransactionalBatchRequestOptionsBuilder() =
   inherit RequestOptionsBuilder()
 
@@ -224,7 +228,7 @@ type TransactionalBatchRequestOptionsBuilder() =
 let transactionalBatchRequestOptions =
   TransactionalBatchRequestOptionsBuilder()
 
-
+[<Sealed>]
 type CosmosClientOptionsBuilder() =
 
   member inline _.Yield _ = CosmosClientOptions()
@@ -339,6 +343,7 @@ type CosmosClientOptionsBuilder() =
 
 let cosmosClientOptions = CosmosClientOptionsBuilder()
 
+[<Sealed>]
 type CosmosSerializationOptionsBuilder() =
 
   member inline _.Yield _ = CosmosSerializationOptions()
