@@ -6,9 +6,9 @@ Constellation is a wrapper library around parts of the CosmosDB SDK, mainly CRUD
 
 ## Motivation
 
-The reason why I decided to make this package came from [FSharp.CosmosDb](https://github.com/aaronpowell/FSharp.CosmosDb) (a package by [@aaronpowell](https://github.com/aaronpowell)), [this section](https://docs.microsoft.com/en-us/azure/cosmos-db/sql/performance-tips-dotnet-sdk-v3-sql#sdk-usage) of the Microsoft Performance Tips for CosmosDB, and a little bit of the context syntax sugar of Entity Framework, and a personal project that I am working on at the date of writing.
+The reason why I decided to make this package came from [FSharp.CosmosDb](https://github.com/aaronpowell/FSharp.CosmosDb) (a package by [@aaronpowell](https://github.com/aaronpowell)), [this section](https://docs.microsoft.com/en-us/azure/cosmos-db/sql/performance-tips-dotnet-sdk-v3-sql#sdk-usage) of the Microsoft Performance Tips for CosmosDB, a little bit of the context syntax sugar from Entity Framework, and a personal project that I am working on at the date of writing.
 
-The library that Aaron created is great, but I needed something a little too specific for my use case. So I've decided to create something that can be a little more friendly with DI Frameworks, like ASP.NET default one, and that does not instantiate multiple instances of the CosmosClient, as suggested in the Tips from Microsoft.
+The library that Aaron created is great, but I needed something a little too specific for my use case. So I've decided to create something that can be a little more friendly with DI Frameworks, like ASP.NET's default one, and that does not instantiate multiple instances of the CosmosClient, as suggested in the Tips from Microsoft.
 
 ## Goal
 
@@ -159,7 +159,7 @@ type MyContext(ConnString: string, DatabaseId: string) =
 ````
 From this example, we see we can achieve some kind of "DbContext". Register this class in your DI container or Composition Root and you should be good to go.
 
-Notice that, the type `CosmosContext` exposes a method `GetContainer<'from> (unit -> ConstellationContainer<'from>)` where you can either send the target ContainerId or a type that uses the attribute `Container(string)`. But note that the type is necessary since it is used on that `ConstellationContainer` instance to map from/to the type specified during interactions with the database.
+Notice that, the type `CosmosContext` exposes a method `GetContainer<'from>` where you can either send the target ContainerId or a type that uses the attribute `Container(string)`. But note that the type is necessary since it is used on that `ConstellationContainer` instance to map from/to the type specified during interactions with the database.
 
 ### ConstellationContainer
 
@@ -173,7 +173,7 @@ This module `Constellation.Container` exposes two methods for dealing with `Pend
 
 - `Container.execAsync` with signature `PendingOperation<'a> -> AsyncSeq<'a>`
 - `Container.execAsyncWrapped` with signature `PendingOperation<'a> -> AsyncSeq<ItemResponse<'a>>`
-- `Container.execQueryWrapped` with signature `FluentQuery<'a> -> AsyncSeq<FeedResponse<'a>>`, this method is dedicated to query operations, since queries returns a `FeedResponse<'a>`, therefore if you need the wrapped query result, you have to use this method, trying the method `execAsyncWrapped` will throw an exception.
+- `Container.execQueryWrapped` with signature `FluentQuery<'a> -> AsyncSeq<FeedResponse<'a>>`, this method is dedicated to query operations, since queries returns a `FeedResponse<'a>`, therefore if you need the wrapped query result, you have to use this method, trying to use the method `execAsyncWrapped` will throw an exception.
 
 
 As said before, every operation returns `AsyncSeq<'WrapperType>`, if you want to you can iter through each item as it is used, or do `AsyncSeq.toListSynchronously` to get list of the objects used in the operation. See below usage examples.
@@ -182,7 +182,7 @@ For the sake of simplicity, I'll be showcasing only the fluent syntax. But all m
 
 #### Get
 
-Returns a single result. Even though its return type is an `AsyncSeq`, said sequence will only contain either one or nothing in it.
+Returns a single result. Even though its return type is an `AsyncSeq`, said sequence will only contain either one item or nothing in it.
 
 ````f#
 //Gets the container from a model with the attribute Container
@@ -203,7 +203,7 @@ let getResults = //AsyncSeq<ItemResponse<User>>
 
 #### Query
 
-Returns a collection of results of the container type that may container none, one or more items.
+Returns a collection of results of the container type that may contain none, one or more items.
 
 ````f#
 //Gets the container from a model with the attribute Container
