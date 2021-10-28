@@ -299,3 +299,9 @@ let deleteResult = //AsyncSeq<ItemResponse<User>>
   |> Container.deleteItem [ deleteThis ]
   |> Container.execAsyncWrapped
 ```
+
+## Planned Future Features
+
+- Give support to Transactional Batches
+- Give support to Batch operations (Insert, Change, Delete, etc...)
+- Update to CosmosDb SDK v4 when it's released
