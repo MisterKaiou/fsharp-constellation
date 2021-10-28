@@ -11,13 +11,7 @@ open Constellation.Operators
 module Models =
 
   type QueryParam = string * obj
-
-  type CosmosKeyModel<'a> =
-    { [<Id>]
-      Id: string
-      [<PartitionKey>]
-      PartitionKey: 'a }
-
+  
   type Query =
     { Query: string
       Parameters: QueryParam list }
@@ -81,20 +75,16 @@ type ConstellationContainer<'a> =
 
   (* ----------------------- Delete ----------------------- *)
 
-  member this.DeleteItemWithOptions
+  member this.DeleteItemByIdWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
-    (items: CosmosKeyModel<string> list)
+    (items: (string * Nullable<PartitionKey>) list)
     : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
-    let getIdAndPk item =
-      item >|| AttributeHelpers.getIdFromTypeFrom
-      <| AttributeHelpers.getPartitionKeyFrom
-
-    let deleteItem item =
-      let id, pk = getIdAndPk item
+    let deleteItem (item: string * Nullable<PartitionKey>) =
+      let id, pk = item
 
       match Option.ofNullable pk with
       | None ->
@@ -115,10 +105,28 @@ type ConstellationContainer<'a> =
          | many -> many |> List.map deleteItem
          |> AsyncSeq.ofSeqAsync
 
+  member this.DeleteItemById item =
+    this.DeleteItemByIdWithOptions None None item
 
+  member this.DeleteItemWithOptions
+    (itemOptions: ItemRequestOptions option)
+    (cancelToken: CancellationToken option)
+    item =
+    item
+    |> List.map (
+          fun l ->
+            let id, partitionKey =
+              l
+              >|| AttributeHelpers.getIdFromTypeFrom
+              <| AttributeHelpers.getPartitionKeyFrom
+              
+            (id, partitionKey)
+       )
+    |> this.DeleteItemByIdWithOptions itemOptions cancelToken
+  
   member this.DeleteItem item =
     this.DeleteItemWithOptions None None item
-
+  
   (* ----------------------- Update ----------------------- *)
 
   member this.UpdateWithOptions
@@ -229,10 +237,15 @@ let insertItemWithOptions itemOption cancelToken item (container: ConstellationC
 
 (* ----------------------- Delete ----------------------- *)
 
-let deleteItem item (container: ConstellationContainer<'a>) = container.DeleteItem item
+let deleteItemById item (container: ConstellationContainer<'a>) = container.DeleteItemById item
+  
+let deleteItemByIdWithOptions itemOption cancelToken item (container: ConstellationContainer<'a>) =
+  container.DeleteItemByIdWithOptions itemOption cancelToken item
 
 let deleteItemWithOptions itemOption cancelToken item (container: ConstellationContainer<'a>) =
   container.DeleteItemWithOptions itemOption cancelToken item
+
+let deleteItem item (container: ConstellationContainer<'a>) = container.DeleteItem item
 
 (* ----------------------- Change ----------------------- *)
 
@@ -294,10 +307,10 @@ let withParameters<'a> params' (query: FluentQuery<'a>) =
   let q = { Query = fq.QueryText; Parameters = fq.Parameters }
   query.Container.Query q
 
-let execQueryWrapped query =
-  query.Container.Query
-    { Query = query.QueryText
-      Parameters = query.Parameters }
+(* ----------------------- Execution ----------------------- *)
+
+let execQueryWrapped op =
+  op
   |> function
     | Query q -> q ()
     | _ -> failwith "This case should have not been hit!"
@@ -308,7 +321,7 @@ let execAsyncWrapped<'a> (pending: PendingOperation<'a>) =
   | Default f -> f ()
   | Delete d -> d ()
   | Query _ ->
-    failwith "Wrapped results for query execution must be obtained thought the dedicated method 'execQueryWrapped'"
+    raise (InvalidOperationException("Wrapped results for query execution must be obtained through the dedicated method 'execQueryWrapped'"))
 
 let execAsync<'a> (pending: PendingOperation<'a>) =
   match pending with

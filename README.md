@@ -68,7 +68,7 @@ type User =
 
 ### Builders
 
-This library exposes _some_ builders for the SDK option models. For the sake of brevity, I won't be going through all the builder methods (there is plenty since the models have lots of properties as well), but be sure that you'll be able to find practically all the method you need by being mindful of the naming convention; that is, every method name corresponds to a option model property but with words separated by underscores (snake_case), I.e. If a model has a property `SomeProperty` the builder exposes the method `some_property` that takes an input of the same type as the property.
+This library exposes _some_ builders for the SDK option models. For the sake of brevity, I won't be going through all the builder methods (there is plenty since the models have lots of properties as well), but be sure that you'll be able to find practically all the method you need by being following the naming convention; that is, every method name corresponds to a option model's property but with words separated by underscores (snake_case), I.e. If a model has a property `SomeProperty` the builder exposes the method `some_property` that takes an input of the same type as the property.
 
 There are currently builder for the following SDK option models:
 
@@ -182,7 +182,7 @@ For the sake of simplicity, I'll be showcasing only the fluent syntax. But all m
 
 #### Get
 
-Returns a single result. Even though its return type is an `AsyncSeq`, said sequence will only contain either one item or nothing in it.
+Returns a single result. Even though its return type is an `AsyncSeq`, this sequence will only contain either one item or nothing in it.
 
 ````f#
 //Gets the container from a model with the attribute Container
@@ -253,3 +253,49 @@ let insertResult = //AsyncSeq<ItemResponse<User>>
   |> Container.insertItem [ user ]
   |> Container.execAsyncWrapped
 ````
+
+#### Update (Change)
+
+Replaces an item with the same Id and PartitionKey from the Database
+
+```f#
+//Gets the container from a model with the attribute Container
+let container = ctx |> Context.getContainer<User>
+
+let updateWithThis = { Id = "SomeId"; Username = "UpdatedUserName" }
+
+let updateResult = //AsyncSeq<User>
+  container
+  |> Container.changeItem updateWithThis
+  |> Container.execAsync
+  
+//Or
+
+let updateResult = //AsyncSeq<ItemResponse<User>>
+  container
+  |> Container.changeItem updateWithThis
+  |> Container.execAsyncWrapped
+```
+
+#### Delete
+
+Removes an item from the database.
+Note that, if you want to get the resource from the wrapped response, you can't; it is not returned by the database since it has been deleted.
+```f#
+//Gets the container from a model with the attribute Container
+let container = ctx |> Context.getContainer<User>
+
+let deleteThis = { Id = "SomeId"; Username = "UpdatedUserName" }
+
+let deleteResult = //AsyncSeq<User>
+  container
+  |> Container.deleteItem [ deleteThis ] 
+  |> Container.execAsync
+  
+//Or
+
+let deleteResult = //AsyncSeq<ItemResponse<User>>
+  container
+  |> Container.deleteItem [ deleteThis ]
+  |> Container.execAsyncWrapped
+```
