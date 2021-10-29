@@ -1,9 +1,12 @@
-﻿module Constellation.Attributes
+﻿/// Contains all the attributes used to ease use and communication with CosmosDB.
+module Constellation.Attributes
 
 open System
 open System.Reflection
 open Microsoft.Azure.Cosmos
 
+///<summary>Flags a field or property to be used as a PartitionKey for operations on CosmosDB.</summary>
+///<remarks>Only string, bool and double can be set as PartitionKey.</remarks>
 [<AttributeUsage(AttributeTargets.Field
                  ||| AttributeTargets.Property,
                  AllowMultiple = false,
@@ -11,6 +14,8 @@ open Microsoft.Azure.Cosmos
 type PartitionKeyAttribute() =
   inherit Attribute()
 
+///<summary>Flags a field or property to be used as a ID for operations on CosmosDB.</summary>
+///<remarks>Only string fields/properties may be used as a key for CosmosDB.</remarks>
 [<AttributeUsage(AttributeTargets.Field
                  ||| AttributeTargets.Property,
                  AllowMultiple = false,
@@ -21,13 +26,16 @@ type IdAttribute() =
 [<AttributeUsage(AttributeTargets.Class,
                  AllowMultiple = false,
                  Inherited = true)>]
+
+///<summary>Decorates a class with a name representing the container ID.</summary>
 type ContainerAttribute(Name: string) =
   inherit Attribute()
   
+  ///The name set for this attribute.
   member this.Name = Name
 
 [<RequireQualifiedAccess>]
-module AttributeHelpers =
+module internal AttributeHelpers =
 
   let private isNullBoxing from = from |> box |> isNull
 

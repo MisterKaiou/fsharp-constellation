@@ -1,4 +1,5 @@
-﻿module Constellation.TypeBuilders
+﻿/// Contains builders for the CosmosSDK option types.
+module Constellation.TypeBuilders
 
 open Microsoft.Azure.Cosmos
 open Microsoft.Azure.Cosmos.Scripts
