@@ -93,12 +93,17 @@ type ConstellationContainer<'a> =
 
   /// <summary>Inserts a new item(s)</summary>
   /// <param name="items">The items(s) to insert</param>
-  /// <returns>An Default PendingOperation of the this container's type.</returns>
+  /// <returns>An Default PendingOperation of this container's type.</returns>
   member this.Insert items =
     items |> this.InsertWithOptions None None
 
   (* ----------------------- Delete ----------------------- *)
 
+  /// <summary>Delete an item(s) by its id and PartitionKey with options models and cancellation token.</summary>
+  /// <param name="itemOptions">The options to use in this operation.</param>
+  /// <param name="cancelToken">The cancellation token to use in this operation.</param>
+  /// <param name="items">A list with tupled id and PartitionKey to be used in the search.</param>
+  /// <returns>A Delete PendingOperation.</returns>
   member this.DeleteItemByIdWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
@@ -129,15 +134,22 @@ type ConstellationContainer<'a> =
          | many -> many |> List.map deleteItem
          |> AsyncSeq.ofSeqAsync
 
+  /// <summary>Deletes an item(s) by its id and PartitionKey.</summary>
+  /// <param name="item">A list with tupled id and PartitionKey.</param>
   member this.DeleteItemById item =
     this.DeleteItemByIdWithOptions None None item
 
+  /// <summary>Deletes an item from the database from an item(s) id and PartitionKey</summary>
+  /// <param name="itemOptions">The options to use in this operation.</param>
+  /// <param name="cancelToken">The cancellation token to use in this operation.</param>
+  /// <param name="items">A list the items from which take the id and PartitionKey to be used in the search.</param>
+  /// <returns>A Delete PendingOperation</returns>
   member this.DeleteItemWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
-    item
+    items
     =
-    item
+    items
     |> List.map
          (fun l ->
            let id, partitionKey =
@@ -147,29 +159,44 @@ type ConstellationContainer<'a> =
            (id, partitionKey))
     |> this.DeleteItemByIdWithOptions itemOptions cancelToken
 
-  member this.DeleteItem item =
-    this.DeleteItemWithOptions None None item
+  /// <summary>Deletes an item from the database from an item(s) id and PartitionKey</summary>
+  /// <param name="items">A list the items from which take the id and PartitionKey to be used in the search.</param>
+  /// <returns>A Delete PendingOperation</returns>
+  member this.DeleteItem items =
+    this.DeleteItemWithOptions None None items
 
   (* ----------------------- Update ----------------------- *)
 
+  /// <summary>Updates an entry in the database for the object provided.</summary>
+  /// <param name="itemOptions">The options to use in this operation.</param>
+  /// <param name="cancelToken">The cancellation token to use in this operation.</param>
+  /// <param name="items">The item(s) to update.</param>
+  /// <returns>A Default PendingOperation</returns>
   member this.UpdateWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
-    item
+    items
     : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
-    let id, partitionKey =
-      item >|| AttributeHelpers.getIdFromTypeFrom
-      <| AttributeHelpers.getPartitionKeyFrom
+    let update item =
+      let id, partitionKey =
+        item >|| AttributeHelpers.getIdFromTypeFrom
+        <| AttributeHelpers.getPartitionKeyFrom
+        
+      this.container.ReplaceItemAsync(item, id, partitionKey, options, token) |> Async.AwaitTask
 
-    Single
+    Default
     <| fun _ ->
-         this.container.ReplaceItemAsync(item, id, partitionKey, options, token)
-         |> Async.AwaitTask
+         match items with
+          | [ single ] -> [ update single ]
+          | many -> many |> List.map update
+         |> AsyncSeq.ofSeqAsync
 
-  member this.UpdateItem item = this.UpdateWithOptions None None item
+  /// <summary>Updates an item on the database with the given entity.</summary>
+  /// <param name="items">The item(s) to update.</param>
+  member this.UpdateItem items = this.UpdateWithOptions None None items
 
   (* ----------------------- GetSingle ----------------------- *)
 
