@@ -1,4 +1,5 @@
-﻿[<RequireQualifiedAccess>]
+﻿/// Define types and functions related to a Cosmos Container.
+[<RequireQualifiedAccess>]
 module Constellation.Container
 
 open System
@@ -8,18 +9,29 @@ open FSharp.Control
 open Microsoft.Azure.Cosmos
 open Constellation.Operators
 
+/// Define custom types used in operations with Cosmos Container.
 module Models =
 
+  /// Represents a parameter used in queries. Where left is the parameter to replace (with '@') and right is the parameter value.
   type QueryParam = string * obj
-  
+
+  /// Represents a query to execute.
   type Query =
-    { Query: string
+    { /// The query's text.
+      Query: string
+      /// A list with all the parameters to replace on the query's text.
       Parameters: QueryParam list }
 
+  /// <summary>Represents an operation yet to be executed.</summary>
+  /// <typeparam name="'a">The type returned by this operation.</typeparam>
   type PendingOperation<'a> =
+    /// Encapsulates a query operation.
     | Query of (unit -> AsyncSeq<FeedResponse<'a>>)
+    /// Encapsulates a operation that returns a single value (I.e GetById).
     | Single of (unit -> Async<ItemResponse<'a>>)
+    /// Encapsulates a delete operation.
     | Delete of (unit -> AsyncSeq<ItemResponse<'a>>)
+    /// Encapsulates a default operation, something not defined but that also returns a sequence of results.
     | Default of (unit -> AsyncSeq<ItemResponse<'a>>)
 
 open Models
@@ -36,9 +48,13 @@ let private getCancelToken token =
     | Some c -> c
     | None -> defaultArg token (CancellationToken())
 
+/// <summary>Wrapper around a Container that exposes some of the main CRUD operations for CosmosDB.</summary>
+/// <typeparam name="'a">The type handled by this container.</typeparam>
 type ConstellationContainer<'a> =
+  /// The Container wrapped by this record.
   | Container of Container
 
+  /// The container wrapped by this instance.
   member this.container =
     this
     |> function
@@ -46,7 +62,12 @@ type ConstellationContainer<'a> =
 
   (* ----------------------- Insert ----------------------- *)
 
-  member this.InsertWithOptionsAsync
+  /// <summary>Inserts a new item(s) with the options specified.</summary>
+  /// <param name="itemOptions">The options to use in this operation.</param>
+  /// <param name="cancelToken">The cancellation token to use in this operation.</param>
+  /// <param name="items">The items to insert.</param>
+  /// <returns>An Default PendingOperation of the this container's type.</returns>
+  member this.InsertWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
     items
@@ -70,8 +91,11 @@ type ConstellationContainer<'a> =
          | many -> many |> List.map createItem
          |> AsyncSeq.ofSeqAsync
 
-  member this.InsertAsync items =
-    items |> this.InsertWithOptionsAsync None None
+  /// <summary>Inserts a new item(s)</summary>
+  /// <param name="items">The items(s) to insert</param>
+  /// <returns>An Default PendingOperation of the this container's type.</returns>
+  member this.Insert items =
+    items |> this.InsertWithOptions None None
 
   (* ----------------------- Delete ----------------------- *)
 
@@ -111,22 +135,21 @@ type ConstellationContainer<'a> =
   member this.DeleteItemWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
-    item =
     item
-    |> List.map (
-          fun l ->
-            let id, partitionKey =
-              l
-              >|| AttributeHelpers.getIdFromTypeFrom
-              <| AttributeHelpers.getPartitionKeyFrom
-              
-            (id, partitionKey)
-       )
+    =
+    item
+    |> List.map
+         (fun l ->
+           let id, partitionKey =
+             l >|| AttributeHelpers.getIdFromTypeFrom
+             <| AttributeHelpers.getPartitionKeyFrom
+
+           (id, partitionKey))
     |> this.DeleteItemByIdWithOptions itemOptions cancelToken
-  
+
   member this.DeleteItem item =
     this.DeleteItemWithOptions None None item
-  
+
   (* ----------------------- Update ----------------------- *)
 
   member this.UpdateWithOptions
@@ -230,15 +253,15 @@ type ConstellationContainer<'a> =
 
 (* ----------------------- Insert ----------------------- *)
 
-let insertItem item (container: ConstellationContainer<'a>) = container.InsertAsync item
+let insertItem item (container: ConstellationContainer<'a>) = container.Insert item
 
 let insertItemWithOptions itemOption cancelToken item (container: ConstellationContainer<'a>) =
-  container.InsertWithOptionsAsync itemOption cancelToken item
+  container.InsertWithOptions itemOption cancelToken item
 
 (* ----------------------- Delete ----------------------- *)
 
 let deleteItemById item (container: ConstellationContainer<'a>) = container.DeleteItemById item
-  
+
 let deleteItemByIdWithOptions itemOption cancelToken item (container: ConstellationContainer<'a>) =
   container.DeleteItemByIdWithOptions itemOption cancelToken item
 
@@ -304,7 +327,11 @@ let parameterlessQuery query (container: ConstellationContainer<'a>) =
 
 let withParameters<'a> params' (query: FluentQuery<'a>) =
   let fq = { query with Parameters = params' }
-  let q = { Query = fq.QueryText; Parameters = fq.Parameters }
+
+  let q =
+    { Query = fq.QueryText
+      Parameters = fq.Parameters }
+
   query.Container.Query q
 
 (* ----------------------- Execution ----------------------- *)
@@ -321,7 +348,11 @@ let execAsyncWrapped<'a> (pending: PendingOperation<'a>) =
   | Default f -> f ()
   | Delete d -> d ()
   | Query _ ->
-    raise (InvalidOperationException("Wrapped results for query execution must be obtained through the dedicated method 'execQueryWrapped'"))
+    raise (
+      InvalidOperationException(
+        "Wrapped results for query execution must be obtained through the dedicated method 'execQueryWrapped'"
+      )
+    )
 
 let execAsync<'a> (pending: PendingOperation<'a>) =
   match pending with
