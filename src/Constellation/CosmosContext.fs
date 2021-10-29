@@ -1,21 +1,18 @@
-﻿/// <summary>
-///     Base module for Context related objects
-/// </summary>
+﻿/// Base module for Context related objects.
 module Constellation.Context
 
 open System
 open System.IO
-open System.Text.Json
 open Constellation
 open Constellation.Attributes
-open Microsoft.Azure.Cosmos
-open System.Text.Json.Serialization
+open Constellation.Serialization
 open Constellation.TypeBuilders
+open Microsoft.Azure.Cosmos
   
-  ///Contains the type used to hold endpoint information
+  ///Contains the types and functions used to handle endpoint information.
   module Endpoint =
     
-    type CosmosEndpointInfo =
+    type CosmosAccountKeyInfo =
       { Endpoint: string
         AccountKey: string }
       
@@ -23,49 +20,20 @@ open Constellation.TypeBuilders
 
 open Endpoint
 
-let defaultJsonSerializer =
-  let options = JsonSerializerOptions()
-
-  options.Converters.Add(
-    JsonFSharpConverter(
-      unionEncoding =
-        (JsonUnionEncoding.FSharpLuLike
-         ||| JsonUnionEncoding.NamedFields)
-    )
-  )
-
-  options
-
-let private deserialize<'a> (stream: Stream) =
-  try
-    if typeof<Stream>.IsAssignableFrom (typeof<'a>) then
-      (box stream) :?> 'a
-    else
-      use memoryStream = new MemoryStream()
-      stream.CopyTo(memoryStream)
-      let span = ReadOnlySpan(memoryStream.ToArray())
-      JsonSerializer.Deserialize(span, options = defaultJsonSerializer)
-
-  finally
-    stream.Dispose()
-
-let private serialize input =
-  let payload = new MemoryStream()
-  let options = JsonWriterOptions(Indented = false)
-  use writer = new Utf8JsonWriter(payload, options)
-
-  JsonSerializer.Serialize(writer, input, defaultJsonSerializer)
-  payload :> Stream
-
-let private defaultCosmosSerializer =
+/// The default Serializer used with Cosmos containers.
+let defaultCosmosSerializer =
   { new CosmosSerializer() with
       member this.FromStream<'T>(stream: Stream) : 'T = deserialize stream
 
       member this.ToStream<'T>(input: 'T) : Stream = serialize input }
 
+/// Defines the used connection modes.
 type ConnectionMode =
+    /// Connect using a connection string.
   | ConnectionString of string
-  | AccountKey of CosmosEndpointInfo
+    /// Connection using an AccountKey.
+  | AccountKey of CosmosAccountKeyInfo
+    /// Not yet defined connection mode.
   | Undefined
 
 /// <summary>
@@ -101,10 +69,12 @@ type CosmosContext private () =
 
     _disposed <- false
 
+  /// The Database ID that this Context is connected to.
   member this.DatabaseId
     with get () = _databaseId
     and private set v = _databaseId <- v
 
+  /// The connection mode used for this Context.
   member this.ConnectionMode
     with get () = _authMode
     and private set v =
@@ -124,17 +94,20 @@ type CosmosContext private () =
       else
         ()
 
-  ///<summary>
-  ///   Gets a new container using the specified <paramref name="containerId"/>
-  ///</summary>
-  /// <param name="containerId">The name of the container on CosmosDB</param>
+  /// <summary>
+  ///    Gets a new container using the specified <paramref name="containerId"/>.
+  /// </summary>
+  /// <param name="containerId">The name of the container on CosmosDB.</param>
+  /// <typeparam name="'of'">The type that the returned Container will handle.</typeparam>
+  /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'of'"/>.</returns>
   member this.GetContainer<'of'>(containerId) : Container.ConstellationContainer<'of'> =
     Container.Container(this.Client.GetContainer(this.DatabaseId, containerId))
 
-  ///<summary>
-  ///   Gets a new container using the specified type as the source of the container name.
-  ///</summary>
-  ///<typeparam name="from">The type from which take the ContainerId</typeparam>
+  /// <summary>
+  ///    Gets a new container using the specified type as the source of the container ID.
+  /// </summary>
+  /// <typeparam name="from">The type from which to take the ContainerId.</typeparam>
+  /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'from'"/>.</returns>
   member this.GetContainer<'from>() : Container.ConstellationContainer<'from> =
     let containerId = AttributeHelpers.getContainerIdFromType<'from>
     
@@ -147,11 +120,11 @@ type CosmosContext private () =
   /// </summary>
   /// <param name="clientOptions">
   ///     The options with which to create the new client. If not specified, a default value with a custom
-  /// json parser will be used. (FSharp.SystemTextJson)
+  /// json parser will be used (FSharp.SystemTextJson).
   /// </param>
-  /// <param name="databaseId">The database at which this client points to</param>
-  /// <param name="cosmosEndpointInfo">This client's endpoint configuration</param>
-  new(cosmosEndpointInfo: CosmosEndpointInfo, databaseId, ?clientOptions: CosmosClientOptions) as this =
+  /// <param name="databaseId">The database at which this client points to.</param>
+  /// <param name="cosmosEndpointInfo">This client's endpoint configuration.</param>
+  new(cosmosEndpointInfo: CosmosAccountKeyInfo, databaseId, ?clientOptions: CosmosClientOptions) as this =
     new CosmosContext()
     then
       this.ConnectionMode <- AccountKey cosmosEndpointInfo
@@ -164,10 +137,10 @@ type CosmosContext private () =
   /// </summary>
   /// <param name="clientOptions">
   ///     The options with which to create the new client. If not specified, a default value with a custom
-  /// json parser will be used. (FSharp.SystemTextJson)
+  /// json parser will be used (FSharp.SystemTextJson).
   /// </param>
-  /// <param name="databaseId">The database at which this client points to</param>
-  /// <param name="connString">This client's connection string</param>
+  /// <param name="databaseId">The database at which this client points to.</param>
+  /// <param name="connString">This client's connection string.</param>
   new(connString, databaseId, ?clientOptions: CosmosClientOptions) as this =
     new CosmosContext()
     then
@@ -184,14 +157,19 @@ type CosmosContext private () =
       else
         ()
 
-  ///<summary>
-  ///   Gets a new container using the specified type as the source of the container name.
-  ///</summary>
-  ///<typeparam name="'from">The type from which take the ContainerId</typeparam>
+  /// <summary>
+  ///    Gets a new container using the specified type as the source of the container name.
+  /// </summary>
+  /// <param name="ctx">The context used to retrieve the container.</param>
+  /// <typeparam name="'from">The type from which take the ContainerId.</typeparam>
+  /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'from'"/>.</returns>
 let getContainer<'from> (ctx: CosmosContext) = ctx.GetContainer<'from>()
 
-  ///<summary>
-  ///   Gets a new container using the specified <paramref name="containerId"/>
-  ///</summary>
-  ///<typeparam name="'of">The type from which take the ContainerId</typeparam>
+  /// <summary>
+  ///    Gets a new container using the specified <paramref name="containerId"/>.
+  /// </summary>
+  /// <param name="containerId">The ID of the container to retrieve.</param>
+  /// <param name="ctx">The context used to retrieve the container.</param>
+  /// <typeparam name="'of'">The type that the returned Container will handle.</typeparam>
+  /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'of'"/>.</returns>
 let getContainerWithId<'of'> containerId (ctx: CosmosContext) = ctx.GetContainer<'of'> containerId 
