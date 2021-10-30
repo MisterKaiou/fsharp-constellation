@@ -1,13 +1,13 @@
 ﻿/// Define types and functions related to a Cosmos Container.
 [<RequireQualifiedAccess>]
-module Constellation.Container
+module FSharp.Constellation.Container
 
 open System
 open System.Threading
-open Constellation.Attributes
+open FSharp.Constellation.Attributes
 open FSharp.Control
 open Microsoft.Azure.Cosmos
-open Constellation.Operators
+open FSharp.Constellation.Operators
 
 /// Define custom types used in operations with Cosmos Container.
 module Models =

@@ -1,5 +1,5 @@
 ﻿/// Contains all the attributes used to ease use and communication with CosmosDB.
-module Constellation.Attributes
+module FSharp.Constellation.Attributes
 
 open System
 open System.Reflection

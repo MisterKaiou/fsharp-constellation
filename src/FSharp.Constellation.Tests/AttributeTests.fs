@@ -3,7 +3,7 @@
 module AttributeTests =
 
   open Expecto
-  open Constellation.Attributes
+  open FSharp.Constellation.Attributes
   open Microsoft.Azure.Cosmos
   open System
 

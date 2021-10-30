@@ -4,6 +4,7 @@
         <TargetFramework>net5.0</TargetFramework>
         <GenerateProgramFile>false</GenerateProgramFile>
         <IsPackable>false</IsPackable>
+        <RootNamespace>Constellation.Tests</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="CustomBuilders.fs" />
@@ -14,7 +15,7 @@
         <Content Include="paket.references" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Constellation\Constellation.fsproj" />
+        <ProjectReference Include="..\FSharp.Constellation\FSharp.Constellation.fsproj" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

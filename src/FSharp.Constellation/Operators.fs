@@ -1,4 +1,4 @@
-﻿module Constellation.Operators
+﻿module FSharp.Constellation.Operators
 
 /// <summary> Sends the value to the left to the two functions to the right.</summary>
 /// <param name="value">The value to send to both functions.</param>

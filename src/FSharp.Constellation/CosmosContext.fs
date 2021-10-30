@@ -1,12 +1,12 @@
 ﻿/// Base module for Context related objects.
-module Constellation.Context
+module FSharp.Constellation.Context
 
 open System
 open System.IO
-open Constellation
-open Constellation.Attributes
-open Constellation.Serialization
-open Constellation.TypeBuilders
+open FSharp.Constellation
+open FSharp.Constellation.Attributes
+open FSharp.Constellation.Serialization
+open FSharp.Constellation.TypeBuilders
 open Microsoft.Azure.Cosmos
   
   ///Contains the types and functions used to handle endpoint information.

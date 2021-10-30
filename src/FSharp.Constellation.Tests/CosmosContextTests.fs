@@ -3,7 +3,7 @@ namespace Constellation.Tests
 module CosmosContextTests =
 
   open Expecto
-  open Constellation.Context
+  open FSharp.Constellation.Context
   open System
 
   [<Literal>]

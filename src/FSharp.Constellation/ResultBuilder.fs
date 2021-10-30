@@ -1,4 +1,4 @@
-﻿module internal Constellation.ResultBuilder
+﻿module internal FSharp.Constellation.ResultBuilder
 
 type ResultBuilder() =
   member inline _.Return(x) = Ok x

@@ -1,5 +1,5 @@
 ﻿/// Module responsible for handling data serialization.
-module Constellation.Serialization
+module FSharp.Constellation.Serialization
 
 open System
 open System.IO

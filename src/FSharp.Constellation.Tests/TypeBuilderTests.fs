@@ -6,7 +6,7 @@ open Microsoft.Azure.Cosmos.Scripts
 module TypeBuilderTests =
 
   open Constellation.Tests.CustomBuilders
-  open Constellation.TypeBuilders
+  open FSharp.Constellation.TypeBuilders
   open Expecto
   open Microsoft.Azure.Cosmos
 
