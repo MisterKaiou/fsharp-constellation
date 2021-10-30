@@ -1,5 +1,7 @@
 # Constellation
 
+![Build Status](https://github.com/MisterKaiou/fsharp-constellation/actions/workflows/ci.yml/badge.svg)
+
 ## What is Constellation?
 
 Constellation is a wrapper library around parts of the CosmosDB SDK, mainly CRUD operations, to make use with F# more friendly and straight-forward.
