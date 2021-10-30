@@ -13,6 +13,7 @@ ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 	README.md = README.md
 	build.fsx = build.fsx
+	.github\workflows\ci.yml = .github\workflows\ci.yml
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Constellation.Tests", "src\FSharp.Constellation.Tests\FSharp.Constellation.Tests.fsproj", "{C81995F6-0D1D-4994-9F63-22429A081878}"
