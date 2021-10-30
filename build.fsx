@@ -1,6 +1,6 @@
 #r "paket:  
 nuget Fake.Core.Target
-nuget Fake.DotNet.MSBuild
+nuget Fake.DotNet.Cli
 nuget Fake.IO.FileSystem
 nuget Fake.DotNet.Testing.Expecto
 nuget FSharp.Core 5.0.0"
@@ -13,37 +13,37 @@ open Fake.Core.TargetOperators
 open Fake.DotNet
 open Fake.DotNet.Testing
 
-let buildDir = "./build/"
-let testDir = "./test/"
+let sln = "FSharp.Constellation.sln"
+let projName = "FSharp.Constellation"
+let testProjName = "FSharp.Constellation.Tests"
+let mainProjDir = $"./src/{projName}/"
+let testProjDir = $"./src/{testProjName}/"
 
-Target.create "Clean" (fun _ ->
-  Shell.cleanDirs [buildDir; testDir]
+let clean = "Clean"
+let buildLib = "BuildLib"
+let runTest = "RunTests"
+let all = "All"
+
+Target.create clean (fun _ ->
+  !! "./src/**/bin"
+  ++ "./src/**/obj"
+  |> Shell.cleanDirs 
 )
 
-Target.create "BuildLib" (fun _ ->
-  !! "src/Constellation/*.fsproj"
-    |> MSBuild.runRelease id buildDir "Build"
-    |> Trace.logItems "LibBuild-Output: "
+Target.create buildLib (fun _ ->
+    DotNet.build id sln 
 )
 
-Target.create "BuildTest" (fun _ ->
-  !! "src/Constellation.Tests/*.fsproj"
-    |> MSBuild.runDebug id testDir "Build"
-    |> Trace.logItems "TestBuild-Output: "
-)
-
-Target.create "Test" (fun _ ->
-  !! (testDir + "/Constellation.Tests.dll")
+Target.create runTest (fun _ ->
+  !! $"{testProjDir}bin/Release/net5.0/{testProjName}.dll"
     |> Expecto.run id
 )
 
-Target.create "Default" (fun _ ->
-  Trace.trace "Hello from FAKE!"
-)
+Target.create all ignore
 
-"Clean"
-  ==> "BuildLib"
-  ==> "BuildTest"
-  ==> "Test"
+clean
+  ==> buildLib
+  ==> runTest
+  ==> all
 
-Target.runOrDefault "Test"
+Target.runOrDefault all
