@@ -20,7 +20,7 @@
         <Compile Include="Container.fs" />
         <Compile Include="Serialization.fs" />
         <Compile Include="CosmosContext.fs" />
-        <None Include="tests.fsx" />
+        <Content Include="paket.references" />
     </ItemGroup>
     <Import Project="..\..\.paket\Paket.Restore.targets" />
 </Project>

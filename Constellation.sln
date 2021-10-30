@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5DADC70F-1
 ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 	README.md = README.md
+	build.fsx = build.fsx
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Constellation.Tests", "src\Constellation.Tests\Constellation.Tests.fsproj", "{C81995F6-0D1D-4994-9F63-22429A081878}"

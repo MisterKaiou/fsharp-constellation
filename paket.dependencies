@@ -2,10 +2,11 @@ source https://api.nuget.org/v3/index.json
 
 storage: none
 framework: net5.0, netstandard2.0, netstandard2.1
-nuget Expecto >= 9.0
-nuget FSharp.Control.AsyncSeq 3.1.0
+
 nuget FSharp.Core 6.0.0 content: none
+nuget FSharp.Control.AsyncSeq 3.1.0
 nuget FSharp.SystemTextJson 0.17.4
 nuget Microsoft.Azure.Cosmos 3.21.0
-nuget Microsoft.NET.Test.Sdk 16.11.0
 nuget YoloDev.Expecto.TestSdk 0.12.9
+nuget Expecto >= 9.0
+nuget Microsoft.NET.Test.Sdk 16.11.0
