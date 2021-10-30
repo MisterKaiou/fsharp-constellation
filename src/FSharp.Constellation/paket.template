@@ -1,0 +1,5 @@
+type project
+version 0.5.0
+projectUrl https://github.com/MisterKaiou/fsharp-constellation
+owners Kaio Rauta
+tags F#;FSharp;Cosmos;Cosmosdb;CosmosSDK;functional;wrapper
