@@ -1,11 +1,11 @@
-﻿namespace Constellation.Tests
+﻿namespace FSharp.Constellation.Tests
 
 open System
 open Microsoft.Azure.Cosmos.Scripts
 
 module TypeBuilderTests =
 
-  open Constellation.Tests.CustomBuilders
+  open FSharp.Constellation.Tests.CustomBuilders
   open FSharp.Constellation.TypeBuilders
   open Expecto
   open Microsoft.Azure.Cosmos

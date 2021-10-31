@@ -21,8 +21,9 @@ jobs:
       with: 
         dotnet-version: '5.0.402'
 
-    - name: Restore dotnet tools
-      run: dotnet tool restore 
-
     - name: Build
-      run: dotnet fake build
+      run: dotnet build --configuration Release 
+
+    - name: Run Tests
+      run: dotnet test
+      

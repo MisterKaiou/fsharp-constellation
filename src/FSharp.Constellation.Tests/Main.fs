@@ -1,4 +1,4 @@
-﻿namespace Constellation.Tests
+﻿namespace FSharp.Constellation.Tests
 
 module Entry =
   open Expecto

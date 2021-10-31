@@ -4,7 +4,7 @@
         <TargetFramework>net5.0</TargetFramework>
         <GenerateProgramFile>false</GenerateProgramFile>
         <IsPackable>false</IsPackable>
-        <RootNamespace>Constellation.Tests</RootNamespace>
+        <OutputType>Exe</OutputType>
     </PropertyGroup>
     <ItemGroup>
         <Compile Include="CustomBuilders.fs" />
@@ -12,10 +12,14 @@
         <Compile Include="CosmosContextTests.fs" />
         <Compile Include="TypeBuilderTests.fs" />
         <Compile Include="Main.fs" />
-        <Content Include="paket.references" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\FSharp.Constellation\FSharp.Constellation.fsproj" />
     </ItemGroup>
-    <Import Project="..\..\.paket\Paket.Restore.targets" />
+    <ItemGroup>
+      <PackageReference Update="FSharp.Core" Version="6.0.1" />
+      <PackageReference Include="Expecto" Version="9.0.4" />
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+      <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.12.12" />
+    </ItemGroup>
 </Project>
