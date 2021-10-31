@@ -30,6 +30,14 @@ jobs:
       - name: Pack
         run: dotnet pack --configuration Release --no-build --output .
         
+      - name: Push to GitHub Releases
+        uses: svenstaro/upload-release-action@v2
+        with: 
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./*.nupkg
+          tag: ${{ github.ref }}
+          file_glob: 'true'
+        
       - name: Push to GitHub NuGet feed
         run: dotnet nuget push *.nupkg 
               --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json 
