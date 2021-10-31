@@ -1,29 +1,41 @@
 name: Build
 
-on: 
+on:
   push:
     branches:
-    - '**'
+      - '**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env: 
+    env:
       DOTNET_NOLOGO: true
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2 
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v1
-      with: 
-        dotnet-version: '5.0.402'
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.402'
 
-    - name: Build
-      run: dotnet build --configuration Release 
+      - name: Build
+        run: dotnet build --configuration Release
 
-    - name: Run Tests
-      run: dotnet test
+      - name: Run Tests
+        run: dotnet test
       
+      - name: Pack
+        run: dotnet pack --configuration Release --no-build --output .
+        
+      - name: Push to GitHub NuGet feed
+        run: dotnet nuget push *.nupkg 
+              --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json 
+              --api-key ${{ secrets.GIT_NUGET_TOKEN }}
+      
+      - name: Push to NuGet Feed
+        run: dotnet nuget push *.nupkg
+              --source https://api.nuget.org/v3/index.json
+              --api-key ${{ secrets.NUGET_TOKEN }}
