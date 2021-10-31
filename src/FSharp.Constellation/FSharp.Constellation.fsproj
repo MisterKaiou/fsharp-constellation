@@ -20,6 +20,7 @@
         <PackageVersion>0.5.0</PackageVersion>
         <PackageProjectUrl>https://github.com/MisterKaiou/fsharp-constellation</PackageProjectUrl>
         <RepositoryUrl>https://github.com/MisterKaiou/fsharp-constellation</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
     
     <ItemGroup>
@@ -36,6 +37,8 @@
         <Compile Include="Container.fs" />
         <Compile Include="Serialization.fs" />
         <Compile Include="CosmosContext.fs" />
+        
+        <None Include="../../README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
     
     <ItemGroup>
