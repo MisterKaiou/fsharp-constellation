@@ -2,7 +2,6 @@
 module FSharp.Constellation.Attributes
 
 open System
-open System.Reflection
 open Microsoft.Azure.Cosmos
 
 ///<summary>Flags a field or property to be used as a PartitionKey for operations on CosmosDB.</summary>
@@ -36,6 +35,9 @@ type ContainerAttribute(Name: string) =
 
 [<RequireQualifiedAccess>]
 module internal AttributeHelpers =
+
+  open FSharp.Reflection
+  open System.Reflection
 
   let private isNullBoxing from = from |> box |> isNull
 
@@ -109,10 +111,10 @@ module internal AttributeHelpers =
       in'
       |> Array.choose
            (fun p ->
-             (p.PropertyType.IsClass && p.PropertyType <> typeof<string>)
+             (p.PropertyType.IsClass && p.PropertyType <> typeof<string> && (FSharpType.IsUnion(p.PropertyType) = false))
              |> function
                   | false -> 
-                     p.GetCustomAttribute<'a>() 
+                     p.GetCustomAttribute<'a>()
                      |> isNullBoxing = false
                      |> function
                        | true -> Some p
