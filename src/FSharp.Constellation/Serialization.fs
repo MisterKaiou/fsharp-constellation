@@ -17,7 +17,7 @@ let defaultJsonSerializer =
          ||| JsonUnionEncoding.NamedFields)
     )
   )
-
+  options.PropertyNamingPolicy <- JsonNamingPolicy.CamelCase
   options
 
 /// <summary>Deserializes a stream to <typeparamref name="'a"/>.</summary>
