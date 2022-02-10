@@ -35,7 +35,7 @@ type User =
 ````
 
 #### PartitionKey
-For almost all operations the PartitionKey is needed. Fields marked with this attribute can only be of type **string, bool, double or float** 
+For almost all operations the PartitionKey is needed. Fields marked with this attribute can only be of type **string, bool, double or float**:
 
 ````f#
 open Constellation.Attributes
@@ -43,6 +43,24 @@ open Constellation.Attributes
 type User =
   { [<Id>] Id: string
     [<PartitionKey>] Username: string }
+````
+
+Or your PartitionKey can be inside a property on your root class. The example below sets
+the PartitionKey to one level below (I.e.: In a reference type property of the root class)
+but it can be as deep as you need it to. Just keep in mind that reflection is used to
+navigate into these properties and get the value; if performance is a concern you might not
+want to use this convenience.
+
+````f#
+open Constellation.Attributes
+
+type ContactInfo =
+  { [<PartitionKey>] Email: string }
+
+type User =
+  { [<Id>] Id: string
+    Username: string
+    ContactInformation: ContactInfo }
 ````
 
 If your data is partitioned by id, for example, a user is it's own partition, then you can do:

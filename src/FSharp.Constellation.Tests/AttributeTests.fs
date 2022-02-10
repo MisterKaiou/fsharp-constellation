@@ -48,14 +48,16 @@ module AttributeTests =
 
   type TestNoAttributeType = { SomeProp: int }
 
-  let private PartitionKeyAttribute_MissingAttributeShouldThrow () =
+  let private PartitionKeyAttribute_MissingAttributeShouldUsePartitionKeyNone () =
     let subject = { SomeProp = 1 }
 
-    Expect.throwsT<ArgumentNullException>
-    <| (fun _ ->
+    let result =
       AttributeHelpers.getPartitionKeyFrom subject
-      |> ignore)
-    <| "If no property has PartitionKeyAttribute, then it should throw an exception"
+    
+    Expect.equal 
+      result
+      PartitionKey.None 
+      "When no PartitionKeyAttribute is present, PartitionKey.None should be used"
 
   type TestPropertyWithUnsupportedType =
     { [<PartitionKey>]
@@ -69,6 +71,45 @@ module AttributeTests =
       AttributeHelpers.getPartitionKeyFrom subject
       |> ignore)
     <| "If the type pf the property that has PartitionKeyAttribute is not bool, string or double, then it should throw an exception"
+
+  type TestTypeWithManyPropertiesOfTheSameType =
+    { MustIgnoreThis: string
+      [<PartitionKey>] Goal: string }
+
+  type TestTypeWithClassProperty =
+   { StringType: TestTypeWithManyPropertiesOfTheSameType }
+  
+  type Dummy =
+    { SomeNumber: int }
+
+  type TestRootClass =
+    { TestType: TestTypeWithClassProperty
+      MustIgnoreThisProperty: string
+      SomeDummy: Dummy }
+
+  let private PartitionKeyAttribute_ShouldAllowAttributeOnClassTypeProperty () =
+    let subject = { TestType = { StringType = { Goal = "Some"; MustIgnoreThis = "Should not be picked up" } }; MustIgnoreThisProperty = ""; SomeDummy = { SomeNumber = 1 } }
+    let expected = Nullable(PartitionKey("Some"))
+
+    let result =
+      AttributeHelpers.getPartitionKeyFrom subject
+
+    Expect.equal result expected "A PartitionKey should be found even if on a Reference Type Property."
+
+  type TestIdType =
+    { [<Id>] SomeIdProperty: string }
+
+  let private AnIdAttributeShouldBeValidOnAStringProperty () =
+    let expectedId = Guid.NewGuid().ToString("N")
+    let subject = { SomeIdProperty = expectedId }
+
+    let result =
+      AttributeHelpers.getIdFrom subject
+    
+    Expect.equal 
+      result
+      expectedId
+      "The ID must be properly found on the class."
 
   [<Tests>]
   let attributeTests =
@@ -86,8 +127,18 @@ module AttributeTests =
           " A Partition Key from a double property should be valid and properly parsed"
           PartitionKeyAttribute_ShouldAllowUsageOnFloatProperties
 
-        testCase " A property must use the PartitionKeyAttribute" PartitionKeyAttribute_MissingAttributeShouldThrow
+        testCase 
+          " A Class that has no PartitionKey should use PartitionKey.None" 
+          PartitionKeyAttribute_MissingAttributeShouldUsePartitionKeyNone
 
         testCase
           " The PartitionKeyAttribute must be used on a property of supported type"
-          PartitionKeyAttribute_AttributeOnPropertyWithUnsupportedTypeShouldThrow ]
+          PartitionKeyAttribute_AttributeOnPropertyWithUnsupportedTypeShouldThrow 
+
+        testCase
+          " The PartitionKeyAttribute should be found on a Reference Type Property"
+          PartitionKeyAttribute_ShouldAllowAttributeOnClassTypeProperty
+          
+        testCase
+          " The IdAttribute should be properly found"
+          AnIdAttributeShouldBeValidOnAStringProperty ]

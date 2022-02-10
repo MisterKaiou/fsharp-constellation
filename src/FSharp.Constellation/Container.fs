@@ -153,7 +153,7 @@ type ConstellationContainer<'a> =
     |> List.map
          (fun l ->
            let id, partitionKey =
-             l >|| AttributeHelpers.getIdFromTypeFrom
+             l >|| AttributeHelpers.getIdFrom
              <| AttributeHelpers.getPartitionKeyFrom
 
            (id, partitionKey))
@@ -182,7 +182,7 @@ type ConstellationContainer<'a> =
 
     let update item =
       let id, partitionKey =
-        item >|| AttributeHelpers.getIdFromTypeFrom
+        item >|| AttributeHelpers.getIdFrom
         <| AttributeHelpers.getPartitionKeyFrom
         
       this.container.ReplaceItemAsync(item, id, partitionKey, options, token) |> Async.AwaitTask
@@ -220,7 +220,7 @@ type ConstellationContainer<'a> =
     (item: 'b)
     =
     let id, partitionKey =
-      item >|| AttributeHelpers.getIdFromTypeFrom
+      item >|| AttributeHelpers.getIdFrom
       <| AttributeHelpers.getPartitionKeyFrom
 
     throwWhenPartitionKeyIsNull partitionKey
@@ -232,7 +232,7 @@ type ConstellationContainer<'a> =
 
   member this.GetItemFromItem(item: 'b) =
     let id, partitionKey =
-      item >|| AttributeHelpers.getIdFromTypeFrom
+      item >|| AttributeHelpers.getIdFrom
       <| AttributeHelpers.getPartitionKeyFrom
 
     throwWhenPartitionKeyIsNull partitionKey
