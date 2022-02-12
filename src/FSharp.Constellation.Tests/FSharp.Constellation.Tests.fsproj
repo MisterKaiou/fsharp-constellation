@@ -9,7 +9,6 @@
     <ItemGroup>
         <Compile Include="CustomBuilders.fs" />
         <Compile Include="AttributeTests.fs" />
-        <Compile Include="CosmosContextTests.fs" />
         <Compile Include="TypeBuilderTests.fs" />
         <Compile Include="Main.fs" />
     </ItemGroup>
@@ -17,9 +16,9 @@
         <ProjectReference Include="..\FSharp.Constellation\FSharp.Constellation.fsproj" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Update="FSharp.Core" Version="6.0.1" />
+      <PackageReference Update="FSharp.Core" Version="6.0.3" />
       <PackageReference Include="Expecto" Version="9.0.4" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-      <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.12.12" />
+      <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.12.13" />
     </ItemGroup>
 </Project>
