@@ -263,8 +263,6 @@ type ConstellationContainer<'a> =
          iterator
          |> AsyncSeq.unfold
               (fun state ->
-                printfn "Should be called before AsyncSeq iter"
-
                 match state.HasMoreResults with
                 | false -> None
                 | true ->
