@@ -19,6 +19,7 @@ open Microsoft.Azure.Cosmos
     let createEndpointInfo endpoint accountKey = { Endpoint = endpoint; AccountKey = accountKey }
 
 open Endpoint
+open System.Threading
 
 /// The default Serializer used with Cosmos containers.
 let defaultCosmosSerializer =
@@ -37,21 +38,14 @@ type ConnectionMode =
   | Undefined
 
 /// <summary>
-///     A wrapper around a single shared instance of CosmosClient. Providing a EF like usage for DI Containers.
+///     A wrapper around an instance of CosmosClient. Providing a EF like usage for DI Containers.
 /// </summary>
-/// <remarks>
-///     It must be noted that, since the intended usage is for the client to be a single instance throughout all context
-///     instances, and all context instances are supposed to be a singleton, there are no safe guards against unintentional
-///     disposing; except that a new context always checks if the client has been disposed, and creates a new one if so.
-///     The proper behaviour can only be guaranteed if the context instances are created as singletons through the
-///     application's lifetime.
-/// </remarks>
 type CosmosContext private () =
   let mutable _databaseId = ""
 
-  static let mutable _disposed = false
-  static let mutable _authMode = Undefined
-  static let mutable _client: CosmosClient = null
+  let mutable _disposed = false
+  let mutable _authMode = Undefined
+  let mutable _client: CosmosClient = null
 
   member private this.setupContextClient(clientOptions: CosmosClientOptions option) =
     let getDefaultOptions () =
@@ -157,19 +151,40 @@ type CosmosContext private () =
       else
         ()
 
-  /// <summary>
-  ///    Gets a new container using the specified type as the source of the container name.
-  /// </summary>
-  /// <param name="ctx">The context used to retrieve the container.</param>
-  /// <typeparam name="'from">The type from which take the ContainerId.</typeparam>
-  /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'from'"/>.</returns>
+/// <summary>
+///    Gets a new container using the specified type as the source of the container name.
+/// </summary>
+/// <param name="ctx">The context used to retrieve the container.</param>
+/// <typeparam name="'from">The type from which take the ContainerId.</typeparam>
+/// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'from'"/>.</returns>
 let getContainer<'from> (ctx: CosmosContext) = ctx.GetContainer<'from>()
 
-  /// <summary>
-  ///    Gets a new container using the specified <paramref name="containerId"/>.
-  /// </summary>
-  /// <param name="containerId">The ID of the container to retrieve.</param>
-  /// <param name="ctx">The context used to retrieve the container.</param>
-  /// <typeparam name="'of'">The type that the returned Container will handle.</typeparam>
-  /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'of'"/>.</returns>
+/// <summary>
+///    Gets a new container using the specified <paramref name="containerId"/>.
+/// </summary>
+/// <param name="containerId">The ID of the container to retrieve.</param>
+/// <param name="ctx">The context used to retrieve the container.</param>
+/// <typeparam name="'of'">The type that the returned Container will handle.</typeparam>
+/// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'of'"/>.</returns>
 let getContainerWithId<'of'> containerId (ctx: CosmosContext) = ctx.GetContainer<'of'> containerId 
+
+/// <summary>
+/// Configures a new RequestHandler that reads the request body.
+/// </summary>
+/// <param name="ctx">The CosmosContext on which to apply the configuration.</param>
+/// <param name="auditFunc">The function to apply on the RequestMessage body.</param>
+let configureAuditingRequestHandler (ctx: CosmosContext) auditFunc =
+  let handler =
+    { new RequestHandler() with
+        member this.SendAsync(request: RequestMessage, cancellationToken: CancellationToken) = 
+          let buffer = Array.zeroCreate<byte> ((int)request.Content.Length)
+          request.Content.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+          |> Async.AwaitTask |> Async.RunSynchronously
+          |> ignore
+
+          System.Text.Encoding.UTF8.GetString(buffer)
+          |> auditFunc
+
+          this.InnerHandler.SendAsync(request, cancellationToken) }
+
+  ctx.Client.ClientOptions.CustomHandlers.Add(handler)

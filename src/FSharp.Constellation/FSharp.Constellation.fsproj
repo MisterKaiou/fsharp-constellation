@@ -14,10 +14,10 @@
         <RepositoryType>GitHub</RepositoryType>
         <PackageTags>F#;FSharp;Cosmos;Cosmosdb;CosmosSDK;functional;wrapper</PackageTags>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <AssemblyVersion>0.6.1</AssemblyVersion>
-        <FileVersion>0.6.1</FileVersion>
-        <ProductVersion>0.6.1</ProductVersion>
-        <PackageVersion>0.6.1</PackageVersion>
+        <AssemblyVersion>0.6.3</AssemblyVersion>
+        <FileVersion>0.6.3</FileVersion>
+        <ProductVersion>0.6.3</ProductVersion>
+        <PackageVersion>0.6.3</PackageVersion>
         <PackageProjectUrl>https://github.com/MisterKaiou/fsharp-constellation</PackageProjectUrl>
         <RepositoryUrl>https://github.com/MisterKaiou/fsharp-constellation</RepositoryUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -42,9 +42,9 @@
     </ItemGroup>
     
     <ItemGroup>
-      <PackageReference Update="FSharp.Core" Version="6.0.1" />
+      <PackageReference Update="FSharp.Core" Version="6.0.3" />
       <PackageReference Include="FSharp.Control.AsyncSeq" Version="3.2.1" />
       <PackageReference Include="FSharp.SystemTextJson" Version="0.17.4" />
-      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.23.0" />
+      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.24.0" />
     </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@ module FSharp.Constellation.TypeBuilders
 
 open Microsoft.Azure.Cosmos
 open Microsoft.Azure.Cosmos.Scripts
+open System
 
 type RequestOptionsBuilder() =
 
@@ -27,35 +28,14 @@ type RequestOptionsBuilder() =
 
 let requestOptions = RequestOptionsBuilder()
 
-[<Sealed>]
 type ItemRequestOptionsBuilder() =
   inherit RequestOptionsBuilder()
 
   member inline _.Yield _ = ItemRequestOptions()
 
-  [<CustomOperation("pre_triggers")>]
-  member inline _.WithPreTriggers(options: ItemRequestOptions, triggers: string list) =
-    options.PreTriggers <- triggers
-    options
-
-  [<CustomOperation("post_triggers")>]
-  member inline _.WithPostTriggers(options: ItemRequestOptions, triggers: string list) =
-    options.PostTriggers <- triggers
-    options
-
-  [<CustomOperation("indexing_directive")>]
-  member inline _.WithIndexingDirective(options: ItemRequestOptions, directive: IndexingDirective) =
-    options.IndexingDirective <- directive
-    options
-
   [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(options: ItemRequestOptions, level: ConsistencyLevel) =
     options.ConsistencyLevel <- level
-    options
-
-  [<CustomOperation("session_token")>]
-  member inline _.WithSessionToken(options: ItemRequestOptions, token: string) =
-    options.SessionToken <- token
     options
 
   [<CustomOperation("enable_content_response_on_write")>]
@@ -63,7 +43,35 @@ type ItemRequestOptionsBuilder() =
     options.EnableContentResponseOnWrite <- true
     options
 
+  [<CustomOperation("indexing_directive")>]
+  member inline _.WithIndexingDirective(options: ItemRequestOptions, directive: IndexingDirective) =
+    options.IndexingDirective <- directive
+    options
+
+  [<CustomOperation("post_triggers")>]
+  member inline _.WithPostTriggers(options: ItemRequestOptions, triggers: string list) =
+    options.PostTriggers <- triggers
+    options
+
+  [<CustomOperation("pre_triggers")>]
+  member inline _.WithPreTriggers(options: ItemRequestOptions, triggers: string list) =
+    options.PreTriggers <- triggers
+    options
+
+  [<CustomOperation("session_token")>]
+  member inline _.WithSessionToken(options: ItemRequestOptions, token: string) =
+    options.SessionToken <- token
+    options
+
 let itemRequestOptions = ItemRequestOptionsBuilder()
+
+[<Sealed>]
+type PatchItemRequestOptionsBuilder() =
+  inherit ItemRequestOptionsBuilder()
+
+  member inline _.Yield _ = PatchItemRequestOptions()
+
+let patchItemRequestOptions = PatchItemRequestOptionsBuilder()
 
 [<Sealed>]
 type ChangeFeedRequestOptionsBuilder() =
@@ -156,28 +164,23 @@ type ReadManyRequestOptionsBuilder() =
 
   member inline _.Yield _ = ReadManyRequestOptions()
 
-  [<CustomOperation("session_token")>]
-  member inline _.WithSessionToken(opt: ReadManyRequestOptions, token) =
-    opt.SessionToken <- token
-    opt
-
   [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: ReadManyRequestOptions, level) =
     opt.ConsistencyLevel <- level
+    opt
+
+  [<CustomOperation("session_token")>]
+  member inline _.WithSessionToken(opt: ReadManyRequestOptions, token) =
+    opt.SessionToken <- token
     opt
 
 let readManyRequestOptions = ReadManyRequestOptionsBuilder()
 
 [<Sealed>]
 type StorageProcedureRequestOptionsBuilder() =
-  inherit RequestOptions()
+  inherit RequestOptionsBuilder()
 
   member inline _.Yield _ = StoredProcedureRequestOptions()
-
-  [<CustomOperation("session_token")>]
-  member inline _.WithSessionToken(opt: StoredProcedureRequestOptions, token) =
-    opt.SessionToken <- token
-    opt
 
   [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: StoredProcedureRequestOptions, level) =
@@ -189,9 +192,13 @@ type StorageProcedureRequestOptionsBuilder() =
     opt.EnableScriptLogging <- true
     opt
 
+  [<CustomOperation("session_token")>]
+  member inline _.WithSessionToken(opt: StoredProcedureRequestOptions, token) =
+    opt.SessionToken <- token
+    opt
+
 let storageProcedureRequestOptions = StorageProcedureRequestOptionsBuilder()
 
-[<Sealed>]
 type TransactionalBatchItemRequestOptionsBuilder() =
   inherit RequestOptionsBuilder()
 
@@ -209,6 +216,19 @@ type TransactionalBatchItemRequestOptionsBuilder() =
 
 let transactionalBatchItemRequestOptions =
   TransactionalBatchItemRequestOptionsBuilder()
+
+[<Sealed>]
+type TransactionalBatchPatchItemRequestOptionsBuilder() =
+  inherit TransactionalBatchItemRequestOptionsBuilder()
+
+  member inline _.Yield _ = TransactionalBatchPatchItemRequestOptions()
+
+  member inline _.WithFilterPredicate(opt: TransactionalBatchPatchItemRequestOptions, predicate) =
+    opt.FilterPredicate <- predicate
+    opt
+
+let transactionalBatchPatchItemRequestOptions =
+  TransactionalBatchPatchItemRequestOptionsBuilder()
 
 [<Sealed>]
 type TransactionalBatchRequestOptionsBuilder() =
@@ -264,6 +284,17 @@ type CosmosClientOptionsBuilder() =
   [<CustomOperation("consistency_level")>]
   member inline _.WithConsistencyLevel(opt: CosmosClientOptions, level) =
     opt.ConsistencyLevel <- level
+    opt
+
+  [<CustomOperation("custom_handler")>]
+  member inline _.WithCustomHandler(opt: CosmosClientOptions, handler: #RequestHandler) =
+    opt.CustomHandlers.Add(handler)
+    opt
+
+  [<CustomOperation("custom_handlers")>]
+  member inline _.WithCustomHandlers(opt: CosmosClientOptions, handlers: #RequestHandler list) =
+    handlers
+    |> List.iter (fun h -> opt.CustomHandlers.Add(h))
     opt
 
   [<CustomOperation("enable_content_response_on_write")>]
@@ -340,6 +371,16 @@ type CosmosClientOptionsBuilder() =
   [<CustomOperation("serializer_options")>]
   member inline _.WithSerializerOptions(opt: CosmosClientOptions, options) =
     opt.SerializerOptions <- options
+    opt
+
+  [<CustomOperation("token_credential_background_refresh_interval")>]
+  member inline _.WithTokenCredentialBackgroundRefreshInterval(opt: CosmosClientOptions, interval: TimeSpan option) =
+    opt.TokenCredentialBackgroundRefreshInterval <- interval |> Option.toNullable
+    opt
+
+  [<CustomOperation("web_proxy")>]
+  member inline _.WithWebProxy(opt: CosmosClientOptions, proxy) =
+    opt.WebProxy <- proxy
     opt
 
 let cosmosClientOptions = CosmosClientOptionsBuilder()
