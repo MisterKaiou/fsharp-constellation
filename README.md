@@ -2,7 +2,7 @@
 
 ![Build Status](https://img.shields.io/github/workflow/status/MisterKaiou/fsharp-constellation/Build/main?style=for-the-badge)
 ![Downloads](https://img.shields.io/nuget/dt/FSharp.Constellation?style=for-the-badge)
-
+![Nuget Version](https://img.shields.io/nuget/v/FSharp.Constellation?style=for-the-badge)
 ## What is Constellation?
 
 Constellation is a wrapper library around parts of the CosmosDB SDK, mainly CRUD operations, to make use with F# more friendly and straight-forward.
