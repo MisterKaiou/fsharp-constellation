@@ -45,4 +45,5 @@ let serialize input =
   use writer = new Utf8JsonWriter(payload, options)
 
   JsonSerializer.Serialize(writer, input, defaultJsonSerializer)
+  payload.Position <- 0
   payload :> Stream
