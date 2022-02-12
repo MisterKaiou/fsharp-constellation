@@ -1,16 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-#
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Constellation", "src\FSharp.Constellation\FSharp.Constellation.fsproj", "{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32126.317
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.Constellation", "src\FSharp.Constellation\FSharp.Constellation.fsproj", "{5E86417E-14F2-4FF0-BA84-7B302EA4ABCE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "misc", "misc", "{5DADC70F-1700-4945-9EFF-1C61EBF49DC5}"
-ProjectSection(SolutionItems) = preProject
-	.gitignore = .gitignore
-	README.md = README.md
-	.github\workflows\ci.yml = .github\workflows\ci.yml
-EndProjectSection
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		.github\workflows\cd.yml = .github\workflows\cd.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		README.md = README.md
+	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Constellation.Tests", "src\FSharp.Constellation.Tests\FSharp.Constellation.Tests.fsproj", "{C81995F6-0D1D-4994-9F63-22429A081878}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "FSharp.Constellation.Tests", "src\FSharp.Constellation.Tests\FSharp.Constellation.Tests.fsproj", "{C81995F6-0D1D-4994-9F63-22429A081878}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -46,5 +49,11 @@ Global
 		{C81995F6-0D1D-4994-9F63-22429A081878}.Release|x64.Build.0 = Release|Any CPU
 		{C81995F6-0D1D-4994-9F63-22429A081878}.Release|x86.ActiveCfg = Release|Any CPU
 		{C81995F6-0D1D-4994-9F63-22429A081878}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5864DB55-E0C0-423C-82EB-3C7D869FC662}
 	EndGlobalSection
 EndGlobal

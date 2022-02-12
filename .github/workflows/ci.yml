@@ -1,14 +1,20 @@
 name: Build
 
 on:
+  workflow_call:
+    inputs:
+      artifact-version:
+        required: false
+        type: string
+
   push:
-    tags:
-      - 'v*'
+    branches:
+      - 'main'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     env:
       DOTNET_NOLOGO: true
 
@@ -28,22 +34,13 @@ jobs:
         run: dotnet test
       
       - name: Pack
+        if: inputs.artifact-version
         run: dotnet pack --configuration Release --no-build --output .
-        
-      - name: Push to GitHub Releases
-        uses: svenstaro/upload-release-action@v2
-        with: 
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./*.nupkg
-          tag: ${{ github.ref }}
-          file_glob: 'true'
-        
-      - name: Push to GitHub NuGet feed
-        run: dotnet nuget push *.nupkg 
-              --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json 
-              --api-key ${{ secrets.GIT_NUGET_TOKEN }}
-      
-      - name: Push to NuGet Feed
-        run: dotnet nuget push *.nupkg
-              --source https://api.nuget.org/v3/index.json
-              --api-key ${{ secrets.NUGET_TOKEN }}
+
+      - name: Upload package
+        if: inputs.artifact-version
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-${{ inputs.artifact-version }}
+          path: './*.nupkg'
+          if-no-files-found: error

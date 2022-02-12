@@ -1,6 +1,7 @@
 # Constellation
 
-![Build Status](https://github.com/MisterKaiou/fsharp-constellation/actions/workflows/ci.yml/badge.svg)
+![Build Status](https://img.shields.io/github/workflow/status/MisterKaiou/fsharp-constellation/Build/main?style=for-the-badge)
+![Downloads](https://img.shields.io/nuget/dt/FSharp.Constellation?style=for-the-badge)
 
 ## What is Constellation?
 
