@@ -10,3 +10,4 @@
 
 ##### Added
 - More methods have been added to Options builders
+- New method `configureAuditingRequestHandler` on `CosmosContext` allow for logging of the `RequestMessage` body.

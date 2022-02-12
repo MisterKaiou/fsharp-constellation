@@ -13,9 +13,13 @@ The reason why I decided to make this package came from [FSharp.CosmosDb](https:
 
 The library that Aaron created is great, but I needed something a little too specific for my use case. So I've decided to create something that can be a little more friendly with DI Frameworks, like ASP.NET's default one, and that does not instantiate multiple instances of the CosmosClient, as suggested in the Tips from Microsoft.
 
+<br>
+
 ## Goal
 
 The goal is to provide F# syntax to CosmosDB SDK while also allowing to use all the options provided by the SDK.
+
+<br>
 
 ## How does it work?
 
@@ -87,6 +91,8 @@ type User =
     Username: string }
 ````
 
+<br>
+
 ### Builders
 
 This library exposes _some_ builders for the SDK option models. For the sake of brevity, I won't be going through all the builder methods (there is plenty since the models have lots of properties as well), but be sure that you'll be able to find practically all the method you need by being following the naming convention; that is, every method name corresponds to a option model's property but with words separated by underscores (snake_case), I.e. If a model has a property `SomeProperty` the builder exposes the method `some_property` that takes an input of the same type as the property.
@@ -130,6 +136,8 @@ let itemOption =
   )
 ````
 
+<br>
+
 ### CosmosContext
 
 The wrapper around `CosmosClient`, holds a reference to a single `CosmosClient` through multiple `CosmosContext` instances.
@@ -154,7 +162,7 @@ let context = new CosmosContext(endpointInfo, "databaseId") //Disposable
 (* Gets the underlying SDK client if you need to do something not yet covered by this library *)
 let client = context.Client
 ````
-Keep in mind that **all instances share the same underlying CosmosClient**, and that the CosmosContext is in fact disposable. So, if you are going to use a DI Container, register this class as a singleton. If you dispose, but create a new Context, it will re-instantiate the Client, but until then, all references point to a disposed object, so be mindful of that.
+
 <br>
 
 #### Using the Context - Inheriting from the base class
@@ -181,6 +189,8 @@ type MyContext(ConnString: string, DatabaseId: string) =
 From this example, we see we can achieve some kind of "DbContext". Register this class in your DI container or Composition Root and you should be good to go.
 
 Notice that, the type `CosmosContext` exposes a method `GetContainer<'from>` where you can either send the target ContainerId or a type that uses the attribute `Container(string)`. But note that the type is necessary since it is used on that `ConstellationContainer` instance to map from/to the type specified during interactions with the database.
+
+<br>
 
 ### ConstellationContainer
 
@@ -320,6 +330,7 @@ let deleteResult = //AsyncSeq<ItemResponse<User>>
   |> Container.deleteItem [ deleteThis ]
   |> Container.execAsyncWrapped
 ```
+<br>
 
 ## Planned Future Features
 
