@@ -167,24 +167,3 @@ let getContainer<'from> (ctx: CosmosContext) = ctx.GetContainer<'from>()
 /// <typeparam name="'of'">The type that the returned Container will handle.</typeparam>
 /// <returns>A new instance of the ConstellationContainer for the type defined by <typeparamref name="'of'"/>.</returns>
 let getContainerWithId<'of'> containerId (ctx: CosmosContext) = ctx.GetContainer<'of'> containerId 
-
-/// <summary>
-/// Configures a new RequestHandler that reads the request body.
-/// </summary>
-/// <param name="ctx">The CosmosContext on which to apply the configuration.</param>
-/// <param name="auditFunc">The function to apply on the RequestMessage body.</param>
-let configureAuditingRequestHandler (ctx: CosmosContext) auditFunc =
-  let handler =
-    { new RequestHandler() with
-        member this.SendAsync(request: RequestMessage, cancellationToken: CancellationToken) = 
-          let buffer = Array.zeroCreate<byte> ((int)request.Content.Length)
-          request.Content.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
-          |> Async.AwaitTask |> Async.RunSynchronously
-          |> ignore
-
-          System.Text.Encoding.UTF8.GetString(buffer)
-          |> auditFunc
-
-          this.InnerHandler.SendAsync(request, cancellationToken) }
-
-  ctx.Client.ClientOptions.CustomHandlers.Add(handler)
