@@ -11,6 +11,8 @@ open FSharp.Constellation.Operators
 
 /// Define custom types used in operations with Cosmos Container.
 module Models =
+  open System.Net
+  open Microsoft.Azure.Cosmos
 
   /// Represents a parameter used in queries. Where left is the parameter to replace (with '@') and right is the parameter value.
   type QueryParam = string * obj
@@ -22,17 +24,13 @@ module Models =
       /// A list with all the parameters to replace on the query's text.
       Parameters: QueryParam list }
 
+  type CosmosResponse<'a> = 
+    | Response of Response<'a>
+    | Feed of FeedResponse<'a>
+
   /// <summary>Represents an operation yet to be executed.</summary>
   /// <typeparam name="'a">The type returned by this operation.</typeparam>
-  type PendingOperation<'a> =
-    /// Encapsulates a query operation.
-    | Query of (unit -> AsyncSeq<FeedResponse<'a>>)
-    /// Encapsulates a operation that returns a single value (I.e GetById).
-    | Single of (unit -> Async<ItemResponse<'a>>)
-    /// Encapsulates a delete operation.
-    | Delete of (unit -> AsyncSeq<ItemResponse<'a>>)
-    /// Encapsulates a default operation, something not defined but that also returns a sequence of results.
-    | Default of (unit -> AsyncSeq<ItemResponse<'a>>)
+  type PendingOperation<'a> = Operation of (unit -> AsyncSeq<CosmosResponse<'a>>)
 
 open Models
 
@@ -84,12 +82,13 @@ type ConstellationContainer<'a> =
       this.container.CreateItemAsync(item, pk, options, token)
       |> Async.AwaitTask
 
-    Default
+    Operation
     <| fun _ ->
          match items with
          | [ single ] -> [ createItem single ]
          | many -> many |> List.map createItem
          |> AsyncSeq.ofSeqAsync
+         |> AsyncSeq.map (fun i -> Response i )
 
   /// <summary>Inserts a new item(s)</summary>
   /// <param name="items">The items(s) to insert</param>
@@ -127,12 +126,13 @@ type ConstellationContainer<'a> =
         this.container.DeleteItemAsync(id, k, options, token)
         |> Async.AwaitTask
 
-    Delete
+    Operation
     <| fun _ ->
          match items with
          | [ single ] -> [ deleteItem single ]
          | many -> many |> List.map deleteItem
          |> AsyncSeq.ofSeqAsync
+         |> AsyncSeq.map (fun i -> Response i)
 
   /// <summary>Deletes an item(s) by its id and PartitionKey.</summary>
   /// <param name="item">A list with tupled id and PartitionKey.</param>
@@ -187,12 +187,13 @@ type ConstellationContainer<'a> =
         
       this.container.ReplaceItemAsync(item, id, partitionKey, options, token) |> Async.AwaitTask
 
-    Default
+    Operation
     <| fun _ ->
          match items with
           | [ single ] -> [ update single ]
           | many -> many |> List.map update
          |> AsyncSeq.ofSeqAsync
+         |> AsyncSeq.map (fun i -> Response i)
 
   /// <summary>Updates an item on the database with the given entity.</summary>
   /// <param name="items">The item(s) to update.</param>
@@ -200,6 +201,13 @@ type ConstellationContainer<'a> =
 
   (* ----------------------- GetSingle ----------------------- *)
 
+  /// <summary>
+  /// Returns an item from the database. Or an empty list if not found.
+  /// </summary>
+  /// <param name="itemOptions">The options to use in this operation.</param>
+  /// <param name="cancelToken">The cancellation token to use in this operation.</param>
+  /// <param name="id">The id to search for.</param>
+  /// <param name="partitionKey">The partition to search for.</param>
   member this.GetItemWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
@@ -209,11 +217,19 @@ type ConstellationContainer<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
-    Single
+    Operation
     <| fun _ ->
-         this.container.ReadItemAsync(id, partitionKey, options, token)
-         |> Async.AwaitTask
+         [ this.container.ReadItemAsync<'a>(id, partitionKey, options, token)
+           |> Async.AwaitTask ]
+         |> AsyncSeq.ofSeqAsync
+         |> AsyncSeq.map (fun i -> Response i)         
 
+  /// <summary>
+  /// Returns an item from the database. Or an empty list if not found.
+  /// </summary>
+  /// <param name="itemOptions">The options to use in this operation.</param>
+  /// <param name="cancelToken">The cancellation token to use in this operation.</param>
+  /// <param name="item">The item to get the ID and PartitionKey from.</param>
   member this.GetItemWithOptionsFromItem
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
@@ -227,6 +243,11 @@ type ConstellationContainer<'a> =
 
     this.GetItemWithOptions itemOptions cancelToken id partitionKey.Value
 
+  /// <summary>
+  /// Returns an item from the database. Or an empty list if not found.
+  /// </summary>
+  /// <param name="id">The id to search for.</param>
+  /// <param name="partitionKey">The partition to search for.</param>
   member this.GetItem id partitionKey =
     this.GetItemWithOptions None None id partitionKey
 
@@ -258,7 +279,7 @@ type ConstellationContainer<'a> =
     use iterator =
       this.container.GetItemQueryIterator<'a>(definition, contToken, options)
 
-    Query
+    Operation
     <| fun _ ->
          iterator
          |> AsyncSeq.unfold
@@ -271,7 +292,7 @@ type ConstellationContainer<'a> =
                     |> Async.AwaitTask
                     |> Async.RunSynchronously
 
-                  Some(next, state))
+                  Some(Feed next, state))
 
   member this.Query(query: Query) =
     this.QueryItemsWithOptions None None None query
@@ -361,34 +382,16 @@ let withParameters<'a> params' (query: FluentQuery<'a>) =
 
 (* ----------------------- Execution ----------------------- *)
 
-let execQueryWrapped op =
-  op
-  |> function
-    | Query q -> q ()
-    | _ -> failwith "This case should have not been hit!"
-
 let execAsyncWrapped<'a> (pending: PendingOperation<'a>) =
   match pending with
-  | Single s -> [ s () ] |> AsyncSeq.ofSeqAsync
-  | Default f -> f ()
-  | Delete d -> d ()
-  | Query _ ->
-    raise (
-      InvalidOperationException(
-        "Wrapped results for query execution must be obtained through the dedicated method 'execQueryWrapped'"
-      )
-    )
+  | Operation op -> op ()
+
+let private matchOnResponse response =
+  response
+  |> function 
+      | Feed r -> r.Resource |> AsyncSeq.ofSeq
+      | Response r -> [ r.Resource ] |> AsyncSeq.ofSeq
 
 let execAsync<'a> (pending: PendingOperation<'a>) =
   match pending with
-  | Query q ->
-    q ()
-    |> AsyncSeq.collect (fun item -> item.Resource |> AsyncSeq.ofSeq)
-  | Single s ->
-    [ s () ]
-    |> AsyncSeq.ofSeqAsync
-    |> AsyncSeq.map (fun item -> item.Resource)
-  | Delete _ ->
-    []
-    |> AsyncSeq.ofSeq (* For delete operations, cosmos return null instead of a usable resource *)
-  | Default f -> f () |> AsyncSeq.map (fun item -> item.Resource)
+  | Operation op -> asyncSeq { for i in op () do yield! matchOnResponse i }
