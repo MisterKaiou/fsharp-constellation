@@ -4,6 +4,7 @@ module AttributeTests =
 
   open Expecto
   open FSharp.Constellation.Attributes
+  open FSharp.Constellation.Models.Keys
   open Microsoft.Azure.Cosmos
   open System
 
@@ -13,7 +14,7 @@ module AttributeTests =
 
   let private PartitionKeyAttribute_ShouldAllowUsageOnStringProperties () =
     let subject = { StringProp = "Some" }
-    let expected = Nullable(PartitionKey("Some"))
+    let expected = StringKey "Some"
 
     let result =
       AttributeHelpers.getPartitionKeyFrom subject
@@ -26,7 +27,7 @@ module AttributeTests =
 
   let private PartitionKeyAttribute_ShouldAllowUsageOnBooleanProperties () =
     let subject = { BooleanProp = true }
-    let expected = Nullable(PartitionKey(true))
+    let expected = BooleanKey true
 
     let result =
       AttributeHelpers.getPartitionKeyFrom subject
@@ -39,7 +40,7 @@ module AttributeTests =
 
   let private PartitionKeyAttribute_ShouldAllowUsageOnFloatProperties () =
     let subject = { FloatProp = 1.0 }
-    let expected = Nullable(PartitionKey(1.0))
+    let expected = NumericKey 1.0
 
     let result =
       AttributeHelpers.getPartitionKeyFrom subject
@@ -56,7 +57,7 @@ module AttributeTests =
     
     Expect.equal 
       result
-      PartitionKey.None 
+      NoKey 
       "When no PartitionKeyAttribute is present, PartitionKey.None should be used"
 
   type TestPropertyWithUnsupportedType =
@@ -89,7 +90,7 @@ module AttributeTests =
 
   let private PartitionKeyAttribute_ShouldAllowAttributeOnClassTypeProperty () =
     let subject = { TestType = { StringType = { Goal = "Some"; MustIgnoreThis = "Should not be picked up" } }; MustIgnoreThisProperty = ""; SomeDummy = { SomeNumber = 1 } }
-    let expected = Nullable(PartitionKey("Some"))
+    let expected = StringKey "Some"
 
     let result =
       AttributeHelpers.getPartitionKeyFrom subject

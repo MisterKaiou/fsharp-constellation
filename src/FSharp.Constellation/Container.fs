@@ -8,47 +8,19 @@ open FSharp.Constellation.Attributes
 open FSharp.Control
 open Microsoft.Azure.Cosmos
 open FSharp.Constellation.Operators
-
-/// Define custom types used in operations with Cosmos Container.
-module Models =
-  open Microsoft.FSharp.Quotations
-
-  /// Represents a parameter used in queries. Where left is the parameter to replace (with '@') and right is the parameter value.
-  type QueryParam = string * obj
-
-  /// Represents a query to execute.
-  type Query =
-    { /// The query's text.
-      Query: string
-      /// A list with all the parameters to replace on the query's text.
-      Parameters: QueryParam list }
-
-  type CosmosResponse<'a> = 
-    | Response of Response<'a>
-    | Feed of FeedResponse<'a>
-
-  /// <summary>Represents an operation yet to be executed.</summary>
-  /// <typeparam name="'a">The type returned by this operation.</typeparam>
-  type PendingOperation<'a> = Operation of (unit -> AsyncSeq<CosmosResponse<'a>>)
-  
-  type UpdateOperations =
-    | Add of Expr
-    | Remove of Expr
-    | Increment of Expr<double>
-
-open Models
-
-let private throwWhenPartitionKeyIsNull (partitionKey: Nullable<PartitionKey>) =
-  partitionKey.HasValue
-  |> function
-    | true -> ()
-    | false -> raise (ArgumentNullException("Provided item had null partition key, but it is non-optional"))
+open FSharp.Constellation.Models
+open FSharp.Constellation.Models.Keys
 
 let private getCancelToken token =
   token
   |> function
     | Some c -> c
     | None -> defaultArg token (CancellationToken())
+
+let private getKeyAndId (keyParam: KeyParam) =
+  match keyParam with
+  | SameIdPartition s -> (s, StringKey s)
+  | IdAndKey(s, key) -> (s, key)
 
 /// <summary>Wrapper around a Container that exposes some of the main CRUD operations for CosmosDB.</summary>
 /// <typeparam name="'a">The type handled by this container.</typeparam>
@@ -79,6 +51,7 @@ type ConstellationContainer<'a> =
 
     let getPk this =
       AttributeHelpers.getPartitionKeyFrom this
+      |> fun it -> it.Key
 
     let createItem item =
       let pk = getPk item
@@ -105,36 +78,26 @@ type ConstellationContainer<'a> =
   /// <summary>Delete an item(s) by its id and PartitionKey with options models and cancellation token.</summary>
   /// <param name="itemOptions">The options to use in this operation.</param>
   /// <param name="cancelToken">The cancellation token to use in this operation.</param>
-  /// <param name="items">A list with tupled id and PartitionKey to be used in the search.</param>
+  /// <param name="keys">A list with KeyParam to be used in the search.</param>
   /// <returns>A Delete PendingOperation.</returns>
-  member this.DeleteItemByIdWithOptions
+  member this.DeleteItemByIdWithOptions<'b>
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
-    (items: (string * Nullable<PartitionKey>) list)
+    (keys: KeyParam list)
     : PendingOperation<'a> =
     let options = itemOptions |> Option.toObj
     let token = cancelToken |> getCancelToken
 
-    let deleteItem (item: string * Nullable<PartitionKey>) =
+    let deleteItem (item: string * PartitionKeys) =
       let id, pk = item
 
-      match Option.ofNullable pk with
-      | None ->
-        raise (
-          ArgumentException(
-            nameof items,
-            "For Delete operations it is mandatory that the object have a field decorated with PartitionKey attribute and a value assigned to it"
-          )
-        )
-      | Some k ->
-        this.container.DeleteItemAsync(id, k, options, token)
-        |> Async.AwaitTask
-
+      this.container.DeleteItemAsync(id, pk.Key, options, token)
+      |> Async.AwaitTask
+    
     Operation
     <| fun _ ->
-         match items with
-         | [ single ] -> [ deleteItem single ]
-         | many -> many |> List.map deleteItem
+         keys
+         |> List.map (getKeyAndId >> deleteItem)
          |> AsyncSeq.ofSeqAsync
          |> AsyncSeq.map (fun i -> Response i)
 
@@ -157,10 +120,11 @@ type ConstellationContainer<'a> =
     |> List.map
          (fun l ->
            let id, partitionKey =
-             l >|| AttributeHelpers.getIdFrom
+             l
+             >|| AttributeHelpers.getIdFrom
              <| AttributeHelpers.getPartitionKeyFrom
 
-           (id, partitionKey))
+           IdAndKey (id, partitionKey))
     |> this.DeleteItemByIdWithOptions itemOptions cancelToken
 
   /// <summary>Deletes an item from the database from an item(s) id and PartitionKey</summary>
@@ -185,11 +149,12 @@ type ConstellationContainer<'a> =
     let token = cancelToken |> getCancelToken
 
     let update item =
-      let id, partitionKey =
+      let id, pk =
         item >|| AttributeHelpers.getIdFrom
         <| AttributeHelpers.getPartitionKeyFrom
         
-      this.container.ReplaceItemAsync(item, id, partitionKey, options, token) |> Async.AwaitTask
+      this.container.ReplaceItemAsync(item, id, pk.Key, options, token)
+      |> Async.AwaitTask
 
     Operation
     <| fun _ ->
@@ -276,13 +241,11 @@ type ConstellationContainer<'a> =
     (cancelToken: CancellationToken option)
     (item: 'b)
     =
-    let id, partitionKey =
+    let id, pk =
       item >|| AttributeHelpers.getIdFrom
       <| AttributeHelpers.getPartitionKeyFrom
 
-    throwWhenPartitionKeyIsNull partitionKey
-
-    this.GetItemWithOptions itemOptions cancelToken id partitionKey.Value
+    this.GetItemWithOptions itemOptions cancelToken id pk.Key
 
   /// <summary>
   /// Returns an item from the database. Or an empty list if not found.
@@ -293,13 +256,11 @@ type ConstellationContainer<'a> =
     this.GetItemWithOptions None None id partitionKey
 
   member this.GetItemFromItem(item: 'b) =
-    let id, partitionKey =
+    let id, pk =
       item >|| AttributeHelpers.getIdFrom
       <| AttributeHelpers.getPartitionKeyFrom
 
-    throwWhenPartitionKeyIsNull partitionKey
-
-    this.GetItemWithOptions None None id partitionKey.Value
+    this.GetItemWithOptions None None id pk.Key
 
   (* ----------------------- Query ----------------------- *)
 

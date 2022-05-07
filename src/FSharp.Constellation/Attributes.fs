@@ -2,7 +2,7 @@
 module FSharp.Constellation.Attributes
 
 open System
-open Microsoft.Azure.Cosmos
+open FSharp.Constellation.Models.Keys
 
 ///<summary>Flags a field or property to be used as a PartitionKey for operations on CosmosDB.</summary>
 ///<remarks>Only string, bool and double can be set as PartitionKey.</remarks>
@@ -78,20 +78,23 @@ module internal AttributeHelpers =
       |> castValue target
 
   let private getPartitionKeyFromProperty<'a> (parent: 'a) (parentProperties: PropertyInfo array) (prop: PropertyInfo) =
-    let getNullPartitionKeyIfNull ifNot input : Nullable<PartitionKey> = 
+    let getNullPartitionKeyIfNull ifNot input : PartitionKeys = 
       if (input |> isNullBoxing) then
-        Nullable(PartitionKey.Null)
+        Null
       else
         ifNot(input)
 
     let targetPropType = prop.PropertyType
 
     if (targetPropType = typeof<string>) 
-      then getPropertyValue<'a, string> parent parentProperties prop |> getNullPartitionKeyIfNull (fun s -> Nullable(PartitionKey(s)))
+      then getPropertyValue<'a, string> parent parentProperties prop
+           |> getNullPartitionKeyIfNull StringKey
     elif (targetPropType = typeof<bool>) 
-      then getPropertyValue<'a, bool> parent parentProperties prop |> getNullPartitionKeyIfNull (fun s -> Nullable(PartitionKey(s)))
+      then getPropertyValue<'a, bool> parent parentProperties prop
+           |> getNullPartitionKeyIfNull BooleanKey
     elif (targetPropType = typeof<double>) 
-      then getPropertyValue<'a, double> parent parentProperties prop |> getNullPartitionKeyIfNull (fun s -> Nullable(PartitionKey(s)))
+      then getPropertyValue<'a, double> parent parentProperties prop
+           |> getNullPartitionKeyIfNull NumericKey
     else raise (ArgumentException("The type of the PartitionKey property is not supported"))
 
   let rec private searchFor<'a when 'a :> Attribute> (in': PropertyInfo array) =
@@ -136,7 +139,7 @@ module internal AttributeHelpers =
     |> Array.tryHead
     |> function
       | Some p -> p |> getPartitionKeyFromProperty obj properties
-      | None -> Nullable(PartitionKey.None)
+      | None -> NoKey
 
   let getIdFrom (obj: 'a) =
     getPropertiesFrom obj
