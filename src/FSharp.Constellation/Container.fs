@@ -172,7 +172,7 @@ type ConstellationContainer<'a> =
     (requestOptions: PatchItemRequestOptions option)
     (cancelToken: CancellationToken option)
     (operations: UpdateOperations list)
-    (itemIds: (string * PartitionKey) list)
+    (itemIds: KeyParam list)
     : PendingOperation<'a> =
       
     let translate (op: UpdateOperations) =
@@ -185,20 +185,20 @@ type ConstellationContainer<'a> =
     let token = cancelToken |> getCancelToken
     let translatedOptions = operations |> List.map translate
     
-    let patch id key =
-      this.container.PatchItemAsync<'a>(id, key, translatedOptions, options, token)
+    let patch id (key: PartitionKeys) =
+      this.container.PatchItemAsync<'a>(id, key.Key, translatedOptions, options, token)
       |> Async.AwaitTask
-    
+        
     Operation
     <| fun _ ->
         itemIds
-        |> List.map (fun (id, key) -> patch id key)
+        |> List.map (fun p -> p |> getKeyAndId ||> patch)
         |> AsyncSeq.ofSeqAsync
         |> AsyncSeq.map (fun i -> Response i)
   
   member this.UpdateItems
-    (operations: UpdateOperations list)
-    (itemIds: (string * PartitionKey) list)
+    operations
+    itemIds
     : PendingOperation<'a>
     =
     this.UpdateItemsWithOptions None None operations itemIds
@@ -235,9 +235,9 @@ type ConstellationContainer<'a> =
   /// <param name="cancelToken">The cancellation token to use in this operation.</param>
   /// <param name="item">The item to get the ID and PartitionKey from.</param>
   member this.GetItemWithOptionsFromItem
-    (itemOptions: ItemRequestOptions option)
-    (cancelToken: CancellationToken option)
-    (item: 'b)
+    itemOptions
+    cancelToken
+    item
     =
     let id, pk =
       item >|| AttributeHelpers.getIdFrom
@@ -263,10 +263,10 @@ type ConstellationContainer<'a> =
   (* ----------------------- Query ----------------------- *)
 
   member this.QueryItemsWithOptions
-    (queryOptions: QueryRequestOptions option)
-    (continuationToken: string option)
-    (cancelToken: CancellationToken option)
-    (query: Query)
+    queryOptions
+    continuationToken
+    cancelToken
+    query
     =
     let definition =
       query.Parameters
