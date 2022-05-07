@@ -61,9 +61,8 @@ type ConstellationContainer<'a> =
 
     Operation
     <| fun _ ->
-         match items with
-         | [ single ] -> [ createItem single ]
-         | many -> many |> List.map createItem
+         items
+         |> List.map createItem
          |> AsyncSeq.ofSeqAsync
          |> AsyncSeq.map (fun i -> Response i )
 
@@ -158,9 +157,8 @@ type ConstellationContainer<'a> =
 
     Operation
     <| fun _ ->
-         match items with
-          | [ single ] -> [ update single ]
-          | many -> many |> List.map update
+         items
+         |> List.map update
          |> AsyncSeq.ofSeqAsync
          |> AsyncSeq.map (fun i -> Response i)
 
