@@ -11,8 +11,7 @@ open FSharp.Constellation.Operators
 
 /// Define custom types used in operations with Cosmos Container.
 module Models =
-  open System.Net
-  open Microsoft.Azure.Cosmos
+  open Microsoft.FSharp.Quotations
 
   /// Represents a parameter used in queries. Where left is the parameter to replace (with '@') and right is the parameter value.
   type QueryParam = string * obj
@@ -31,6 +30,11 @@ module Models =
   /// <summary>Represents an operation yet to be executed.</summary>
   /// <typeparam name="'a">The type returned by this operation.</typeparam>
   type PendingOperation<'a> = Operation of (unit -> AsyncSeq<CosmosResponse<'a>>)
+  
+  type UpdateOperations =
+    | Add of Expr
+    | Remove of Expr
+    | Increment of Expr<double>
 
 open Models
 
@@ -165,14 +169,14 @@ type ConstellationContainer<'a> =
   member this.DeleteItem items =
     this.DeleteItemWithOptions None None items
 
-  (* ----------------------- Update ----------------------- *)
+  (* ----------------------- Replace ----------------------- *)
 
-  /// <summary>Updates an entry in the database for the object provided.</summary>
+  /// <summary>Replace an entry in the database for the object provided.</summary>
   /// <param name="itemOptions">The options to use in this operation.</param>
   /// <param name="cancelToken">The cancellation token to use in this operation.</param>
-  /// <param name="items">The item(s) to update.</param>
+  /// <param name="items">The item(s) to replace.</param>
   /// <returns>A Default PendingOperation</returns>
-  member this.UpdateWithOptions
+  member this.ReplaceWithOptions
     (itemOptions: ItemRequestOptions option)
     (cancelToken: CancellationToken option)
     items
@@ -195,10 +199,47 @@ type ConstellationContainer<'a> =
          |> AsyncSeq.ofSeqAsync
          |> AsyncSeq.map (fun i -> Response i)
 
-  /// <summary>Updates an item on the database with the given entity.</summary>
-  /// <param name="items">The item(s) to update.</param>
-  member this.UpdateItem items = this.UpdateWithOptions None None items
+  /// <summary>Replaces an item on the database with the given entity.</summary>
+  /// <param name="items">The item(s) to replace.</param>
+  member this.ReplaceItem items = this.ReplaceWithOptions None None items
 
+  (* ----------------------- Update ----------------------- *)
+  
+  member this.UpdateItemsWithOptions
+    (requestOptions: PatchItemRequestOptions option)
+    (cancelToken: CancellationToken option)
+    (operations: UpdateOperations list)
+    (itemIds: (string * PartitionKey) list)
+    : PendingOperation<'a> =
+      
+    let translate (op: UpdateOperations) =
+      match op with
+      | Add expr -> expr |> Expression.parse |> fun i -> PatchOperation.Add(i.Path, i.Value)
+      | Remove expr -> expr |> Expression.parse |> fun i -> PatchOperation.Remove(i.Path)
+      | Increment expr -> expr |> Expression.parse |> fun i -> PatchOperation.Increment(i.Path, i.Value :?> double)
+      
+    let options = requestOptions |> Option.toObj
+    let token = cancelToken |> getCancelToken
+    let translatedOptions = operations |> List.map translate
+    
+    let patch id key =
+      this.container.PatchItemAsync<'a>(id, key, translatedOptions, options, token)
+      |> Async.AwaitTask
+    
+    Operation
+    <| fun _ ->
+        itemIds
+        |> List.map (fun (id, key) -> patch id key)
+        |> AsyncSeq.ofSeqAsync
+        |> AsyncSeq.map (fun i -> Response i)
+  
+  member this.UpdateItems
+    (operations: UpdateOperations list)
+    (itemIds: (string * PartitionKey) list)
+    : PendingOperation<'a>
+    =
+    this.UpdateItemsWithOptions None None operations itemIds
+  
   (* ----------------------- GetSingle ----------------------- *)
 
   /// <summary>
@@ -316,12 +357,19 @@ let deleteItemWithOptions itemOption cancelToken item (container: ConstellationC
 
 let deleteItem item (container: ConstellationContainer<'a>) = container.DeleteItem item
 
-(* ----------------------- Change ----------------------- *)
+(* ----------------------- Update ----------------------- *)
 
-let changeWithOptions itemOptions cancelToken item (container: ConstellationContainer<'a>) =
-  container.UpdateWithOptions itemOptions cancelToken item
+let updateItems operations ids (container: ConstellationContainer<'a>) = container.UpdateItems operations ids
 
-let changeItem item (container: ConstellationContainer<'a>) = container.UpdateItem item
+let updateItemsWithOptions opt cancelToken operations ids (container: ConstellationContainer<'a>) =
+  container.UpdateItemsWithOptions opt cancelToken operations ids
+
+(* ----------------------- Replace ----------------------- *)
+
+let replaceWithOptions itemOptions cancelToken item (container: ConstellationContainer<'a>) =
+  container.ReplaceWithOptions itemOptions cancelToken item
+
+let replaceItem item (container: ConstellationContainer<'a>) = container.ReplaceItem item
 
 (* ----------------------- GetSingle ----------------------- *)
 

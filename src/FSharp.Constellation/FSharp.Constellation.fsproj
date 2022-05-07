@@ -34,6 +34,7 @@
         <Compile Include="Builders.fs" />
         <Compile Include="Attributes.fs" />
         <Compile Include="ResultBuilder.fs" />
+        <Compile Include="Expression.fs" />
         <Compile Include="Container.fs" />
         <Compile Include="Serialization.fs" />
         <Compile Include="CosmosContext.fs" />

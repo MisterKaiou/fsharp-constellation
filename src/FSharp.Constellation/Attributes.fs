@@ -22,11 +22,10 @@ type PartitionKeyAttribute() =
 type IdAttribute() =
   inherit Attribute()
 
+///<summary>Decorates a class with a name representing the container ID.</summary>
 [<AttributeUsage(AttributeTargets.Class,
                  AllowMultiple = false,
                  Inherited = true)>]
-
-///<summary>Decorates a class with a name representing the container ID.</summary>
 type ContainerAttribute(Name: string) =
   inherit Attribute()
   
