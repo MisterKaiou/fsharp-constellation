@@ -70,6 +70,11 @@ type PatchItemRequestOptionsBuilder() =
   inherit ItemRequestOptionsBuilder()
 
   member inline _.Yield _ = PatchItemRequestOptions()
+  
+  [<CustomOperation("filter_predicate")>]
+  member inline _.WithFilterPredicate(options: PatchItemRequestOptions, filter: string) =
+    options.FilterPredicate <- filter
+    options
 
 let patchItemRequestOptions = PatchItemRequestOptionsBuilder()
 
