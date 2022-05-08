@@ -1,7 +1,7 @@
 module FSharp.Constellation.Expression
 
+open System
 open System.Reflection
-open Microsoft.FSharp.Core
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
 
@@ -9,9 +9,9 @@ type UpdateInfo =
   { Path: string
     Value: obj }
 
-let rec parse (expr: Expr) =
+let rec parseCapitalized (expr: Expr) =
   let getValueOfSome (instance: Expr) (info: PropertyInfo) s =
-    let innerInfo = instance |> parse
+    let innerInfo = instance |> parseCapitalized
     let f = info.GetValue(innerInfo.Value)
     { Path = $"{innerInfo.Path}/{info.Name}"
       Value = f }
@@ -28,3 +28,11 @@ let rec parse (expr: Expr) =
     | _ -> failwith "Not supported"
 
   parseBuildingPath expr "/"
+
+let parse (expr: Expr) =
+  let updateInfo = expr |> parseCapitalized
+  updateInfo.Path
+  |> fun s -> s.Split([|"/"|], StringSplitOptions.RemoveEmptyEntries)
+  |> Array.map (fun s -> $"/{Char.ToLower(s[0])}{s.Substring(1)}")
+  |> String.concat ""
+  |> fun s -> { updateInfo with Path = s }
