@@ -1,4 +1,4 @@
-module FSharp.Constellation.Expression
+module internal FSharp.Constellation.Expression
 
 open System
 open System.Reflection
@@ -9,9 +9,9 @@ type UpdateInfo =
   { Path: string
     Value: obj }
 
-let rec parseCapitalized (expr: Expr) =
+let rec parseAsIs (expr: Expr) =
   let getValueOfSome (instance: Expr) (info: PropertyInfo) s =
-    let innerInfo = instance |> parseCapitalized
+    let innerInfo = instance |> parseAsIs
     let f = info.GetValue(innerInfo.Value)
     { Path = $"{innerInfo.Path}/{info.Name}"
       Value = f }
@@ -29,8 +29,8 @@ let rec parseCapitalized (expr: Expr) =
 
   parseBuildingPath expr "/"
 
-let parse (expr: Expr) =
-  let updateInfo = expr |> parseCapitalized
+let parseFirstLowered (expr: Expr) =
+  let updateInfo = expr |> parseAsIs
   updateInfo.Path
   |> fun s -> s.Split([|"/"|], StringSplitOptions.RemoveEmptyEntries)
   |> Array.map (fun s -> $"/{Char.ToLower(s[0])}{s.Substring(1)}")

@@ -228,6 +228,7 @@ type TransactionalBatchPatchItemRequestOptionsBuilder() =
 
   member inline _.Yield _ = TransactionalBatchPatchItemRequestOptions()
 
+  [<CustomOperation("filter_predicate")>]
   member inline _.WithFilterPredicate(opt: TransactionalBatchPatchItemRequestOptions, predicate) =
     opt.FilterPredicate <- predicate
     opt
