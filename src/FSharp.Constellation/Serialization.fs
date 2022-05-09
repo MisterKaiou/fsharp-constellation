@@ -1,4 +1,5 @@
 ﻿/// Module responsible for handling data serialization.
+[<RequireQualifiedAccess>]
 module FSharp.Constellation.Serialization
 
 open System

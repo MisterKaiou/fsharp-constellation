@@ -5,7 +5,6 @@ open System
 open System.IO
 open FSharp.Constellation
 open FSharp.Constellation.Attributes
-open FSharp.Constellation.Serialization
 open FSharp.Constellation.TypeBuilders
 open Microsoft.Azure.Cosmos
   
@@ -19,14 +18,13 @@ open Microsoft.Azure.Cosmos
     let createEndpointInfo endpoint accountKey = { Endpoint = endpoint; AccountKey = accountKey }
 
 open Endpoint
-open System.Threading
 
 /// The default Serializer used with Cosmos containers.
 let defaultCosmosSerializer =
   { new CosmosSerializer() with
-      member this.FromStream<'T>(stream: Stream) : 'T = deserialize stream
+      member this.FromStream<'T>(stream: Stream) : 'T = Serialization.deserialize stream
 
-      member this.ToStream<'T>(input: 'T) : Stream = serialize input }
+      member this.ToStream<'T>(input: 'T) : Stream = Serialization.serialize input }
 
 /// Defines the used connection modes.
 type ConnectionMode =
