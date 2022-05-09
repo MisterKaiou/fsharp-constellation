@@ -67,7 +67,7 @@ type UpdateOperations =
   /// Operation similar to Add, but if its a valid array index the entry is updated.
   | Set of Expr
   /// Operation similar to Set, but if the field is not found it returns an error.
-  | Replace
+  | Replace of Expr
   /// Removed a field from the document, if not found returns an error. If it is a valid array index, the entry is removed 
   | Remove of Expr
   /// <summary> Increments the value of the field by the value returned by the expression. A whole float number results in an integer

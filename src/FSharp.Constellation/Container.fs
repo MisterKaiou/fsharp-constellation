@@ -151,6 +151,8 @@ let updateItemsWithOptions<'a, 'b> options cancelToken firstCharAsIs operations 
   let translate (op: UpdateOperations) =
     match op with
     | Add expr -> expr |> parser |> fun i -> PatchOperation.Add(i.Path, i.Value)
+    | Set expr -> expr |> parser |> fun i -> PatchOperation.Set(i.Path, i.Value)
+    | Replace expr -> expr |> parser |> fun i -> PatchOperation.Replace(i.Path, i.Value)
     | Remove expr -> expr |> parser |> fun i -> PatchOperation.Remove(i.Path)
     | Increment expr -> expr |> parser |> fun i -> PatchOperation.Increment(i.Path, i.Value :?> double)
     
