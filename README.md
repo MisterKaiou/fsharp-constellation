@@ -13,13 +13,9 @@ The reason why I decided to make this package came from [FSharp.CosmosDb](https:
 
 The library that Aaron created is great, but I needed something a little too specific for my use case. So I've decided to create something that can be a little more friendly with DI Frameworks, like ASP.NET's default one, and that does not instantiate multiple instances of the CosmosClient, as suggested in the Tips from Microsoft.
 
-<br>
-
 ## Goal
 
 The goal is to provide F# syntax to CosmosDB SDK while also allowing to use all the options provided by the SDK.
-
-<br>
 
 ## How does it work?
 
@@ -99,22 +95,19 @@ This library exposes _some_ builders for the SDK option models. For the sake of 
 
 There are currently builder for the following SDK option models:
 
-- `RequestOptions` with name `RequestOptionsBuilder`; instantiate with `requestOptions`
-- `ItemRequestOptions` with name `ItemRequestOptionsBuilder`; instantiate with `itemRequestOptions`
 - `ChangeFeedRequestOptions` with name `ChangeFeedRequestOptionsBuilder`; instantiate with `changeFeedRequestOptions`
 - `ContainerRequestOptions` with name `ContainerRequestOptionsBuilder`; instantiate with `containerRequestOptions`
-
-- `QueryRequestOptions` with name `QueryRequestOptionsBuilder`; instantiate with `queryRequestOptions`
-
-- `StorageProcedureRequestOptions` with name `StorageProcedureRequestOptionsBuilder`; instantiate with `storageProcedureRequestOptions`
-
-- `TransactionalBatchItemRequestOptions` with name `TransactionalBatchItemRequestOptionsBuilder`; instantiate with `transactionalBatchItemRequestOptions`
-
-- `TransactionalBatchRequestOptions` with name `TransactionalBatchRequestOptionsBuilder`; instantiate with `transactionalBatchRequestOptions`
-
 - `CosmosClientOptions` with name `CosmosClientOptionsBuilder`; instantiate with `cosmosClientOptions`
-
 - `CosmosSerializationOptions` with name `CosmosSerializationOptionsBuilder`; instantiate with `cosmosSerializationOptions`
+- `ItemRequestOptions` with name `ItemRequestOptionsBuilder`; instantiate with `itemRequestOptions`
+- `PatchItemRequestOptions` with `PatchItemRequestOptionsBuilder`; instantiate with `patchItemRequestOptions`
+- `QueryRequestOptions` with name `QueryRequestOptionsBuilder`; instantiate with `queryRequestOptions`
+- `ReadManyRequestOptions` with name `ReadManyRequestOptionsBuilder`; instantiate with `readManyRequestOptions`
+- `RequestOptions` with name `RequestOptionsBuilder`; instantiate with `requestOptions`
+- `StorageProcedureRequestOptions` with name `StorageProcedureRequestOptionsBuilder`; instantiate with `storageProcedureRequestOptions`
+- `TransactionalBatchItemRequestOptions` with name `TransactionalBatchItemRequestOptionsBuilder`; instantiate with `transactionalBatchItemRequestOptions`
+- `TransactionalBatchPatchItemRequestOptions` with name `TransactionalBatchPatchItemRequestOptionsBuilder`; instantiate with `transactionalBatchPatchItemRequestOptions`
+- `TransactionalBatchRequestOptions` with name `TransactionalBatchRequestOptionsBuilder`; instantiate with `transactionalBatchRequestOptions`
 
 #### Example Usage
 
@@ -140,7 +133,7 @@ let itemOption =
 
 ### CosmosContext
 
-The wrapper around `CosmosClient`, holds a reference to a single `CosmosClient` through multiple `CosmosContext` instances.
+The wrapper around `CosmosClient`, holds a reference to a `CosmosClient` instance.
 
 By default, this library replaces the default SDK JSON Serializer, for something that better handles F# types; [FSharp.SystemTextJson](https://github.com/Tarmil/FSharp.SystemTextJson), is used with union encoding set to `JsonUnionEncoding.FSharpLuLike ||| JsonUnionEncoding.NamedFields`. Please, refer to that project if you have any questions about how it works.
 
@@ -194,22 +187,31 @@ Notice that, the type `CosmosContext` exposes a method `GetContainer<'from>` whe
 
 ### ConstellationContainer
 
-This is actually just a wrapper around the SDK `Container` class. As of now, it exposes the main CRUD operations in both "dot" syntax and fluent syntax. Also, the methods exposes a version accepting a SDK option model, that has the suffix _WithOption_, for example, the method `getItem` has a version `getItemWithOptions`. The methods that accepts the models options also accepts a `CancellationToken`. So basically, their signatures are: `OptionModel -> CancellationToken -> arg1 -> argN -> ConstellationContainer<'a> -> PendingOperation<'a>`.
+This is actually just a wrapper around the SDK `Container` class. As of now, it exposes the main CRUD operations in fluent syntax. Also, the methods exposes a version accepting a SDK option model, that has the suffix _WithOption_, for example, the method `getItem` has a version `getItemWithOptions`. The methods that accepts the models options also accepts a `CancellationToken`. So basically, their signatures are: `OptionModel -> CancellationToken -> arg1 -> argN -> ConstellationContainer<'a> -> PendingOperation<'a>`.
 
 #### What is `PendingOperation<'a>`?
 
-As the name might suggest it is an operation yet to be executed, it is a union of function types that defines operations that returns an `AsyncSeq<WrapperType<'a>>` where `WrapperType<'a>` is one of the SDK response types that wraps a specific operation, for example, the insert operation returns the type `ItemResponse<'a>`; you can see it in more detail in the SDK documentation.
+As the name might suggest it is an operation yet to be executed, it represent a function that returns an `AsyncSeq<CosmosResponse<'a>>` where `CosmosReponse<'a>` is an union type that maps on the SDK to either a default `Response<T>` or `FeedResponse<T>` in the case of queries or operations that supports continuation, for example, the insert operation returns the type `ItemResponse<'a>`; you can see it in more detail in the SDK documentation.
 
 This module `Constellation.Container` exposes two methods for dealing with `PendingOperation<'a>`.
 
 - `Container.execAsync` with signature `PendingOperation<'a> -> AsyncSeq<'a>`
-- `Container.execAsyncWrapped` with signature `PendingOperation<'a> -> AsyncSeq<ItemResponse<'a>>`
-- `Container.execQueryWrapped` with signature `FluentQuery<'a> -> AsyncSeq<FeedResponse<'a>>`, this method is dedicated to query operations, since queries returns a `FeedResponse<'a>`, therefore if you need the wrapped query result, you have to use this method, trying to use the method `execAsyncWrapped` will throw an exception.
+- `Container.execAsyncWrapped` with signature `PendingOperation<'a> -> AsyncSeq<CosmosResponse<'a>>`
 
+As said before, every operation returns `AsyncSeq<'WrapperType>`, if you want to you can iter through each item as it is used with `AsyncSeq.iter`, or do `AsyncSeq.toListSynchronously` to get list of the objects used in the operation. See below usage examples.
 
-As said before, every operation returns `AsyncSeq<'WrapperType>`, if you want to you can iter through each item as it is used, or do `AsyncSeq.toListSynchronously` to get list of the objects used in the operation. See below usage examples.
+#### KeyParam
 
-For the sake of simplicity, I'll be showcasing only the fluent syntax. But all methods are also available with "dot" syntax.
+Some methods exposed by this library contain a parameter of type `KeyParam`, it is an union case of:
+- `SameIdPartition`: that is a convenience for when you container is partitioned by the documents id. 
+- `IdAndKey`: That represents an id that is different from the partition key.
+
+`IdAndKey` Take a `string * PartitionKeys` where PartitionKeys is an union type of:
+- `StringKey of string`: A partition key of string type.
+- `BooleanKey of bool`: A partition key of a boolean value.
+- `NumericKey of double`: A partition key of numeric value.
+- `NoKey`: Maps to `PartitionKey.None` and represents a key that allows for operations providing no partition key.
+- `Null`: Maps to `PartitionKey.Null` and represents a key that allows for operations providing a null partition key.
 
 #### Get
 
@@ -221,14 +223,21 @@ let container = ctx |> Context.getContainer<User>
 
 let getResults = //AsyncSeq<User>
   container
-  |> Container.getItem "itemId" (PartitionKey("SomeKey"))
+  |> Container.getItem (SameIdPartition "itemId")
   |> Container.execAsync
   
-// Or wrapped
+// or specifying a different response resource type.  
+
+let getResults = //AsyncSeq<AdminUser>
+  container
+  |> Container.getItemAs<_, AdminUser> (SameIdPartition "itemId")
+  |> Container.execAsync
+
+// or wrapped
   
-let getResults = //AsyncSeq<ItemResponse<User>>
+let getResults = //AsyncSeq<CosmosResponse<User>>
   container 
-  |> Container.getItem "itemId" (PartitionKey("SomeKey"))
+  |> Container.getItem (SameIdPartition "itemId")
   |> Container.execAsyncWrapped
 ````
 
@@ -243,7 +252,7 @@ let container = ctx |> Context.getContainer<User>
 let queryResult = //AsyncSeq<User>
   container
   |> Container.query "SELECT u.Id, u.UserName FROM User u WHERE u.Id LIKE @someId"
-  |> Container.withParameters [ ("@someId", box <| "userId") ]
+  |> Container.withParameters [ ("@someId", "userId") ]
   |> Container.execAsync
   
 //Or parameterless
@@ -255,7 +264,7 @@ let queryResult = //AsyncSeq<User>
   
 // Or wrapped
   
-let queryResult = //AsyncSeq<FeedResponse<User>>
+let queryResult = //AsyncSeq<CosmosResponse<User>>
   container
   |> Container.query "SELECT u.Id, u.UserName FROM User u WHERE u.Id LIKE @someId"
   |> Container.withParameters [ ("@someId", box <| "userId") ]
@@ -285,7 +294,27 @@ let insertResult = //AsyncSeq<ItemResponse<User>>
   |> Container.execAsyncWrapped
 ````
 
-#### Update (Change)
+#### Update (Patch)
+
+Updates (patches) the documents with the specified keys by applying the provided operations to them.
+
+Supported operations are described [here](https://docs.microsoft.com/en-us/azure/cosmos-db/partial-document-update#supported-operations).
+Description is also provided on code documentation.
+
+```f#
+//Gets the container from a model with the attribute Container
+let container = ctx |> Context.getContainer<User>
+
+let update = {| Permission = "Write" |}
+
+container
+|> Container.updateItems
+  [ Add <@@ update.Permission @@> ]
+  [ SameIdPartition "userId" ]
+|> Container.execAsync
+```
+
+#### Replace
 
 Replaces an item with the same Id and PartitionKey from the Database
 
@@ -293,18 +322,18 @@ Replaces an item with the same Id and PartitionKey from the Database
 //Gets the container from a model with the attribute Container
 let container = ctx |> Context.getContainer<User>
 
-let updateWithThis = { Id = "SomeId"; Username = "UpdatedUserName" }
+let replaceForThis = { Id = "SomeId"; Username = "UpdatedUserName" }
 
 let updateResult = //AsyncSeq<User>
   container
-  |> Container.changeItem updateWithThis
+  |> Container.changeItem replaceForThis
   |> Container.execAsync
   
 //Or
 
 let updateResult = //AsyncSeq<ItemResponse<User>>
   container
-  |> Container.changeItem updateWithThis
+  |> Container.changeItem replaceForThis
   |> Container.execAsyncWrapped
 ```
 
@@ -331,6 +360,39 @@ let deleteResult = //AsyncSeq<ItemResponse<User>>
   |> Container.execAsyncWrapped
 ```
 <br>
+
+#### **Note:** 
+
+When available, all methods above also provide a version with suffix `Of` and type parameters `<'a, 'b>` whose usage is similar to how it was showcases in the **Get** section above. Usually, you'll want to keep the first parameter the inferred default in the first argument but specifying the expected resource type with an actual type, i.e `<_, AdminUser>`.
+
+Be mindful that `'b` is the types used for deserialization, so if a field is expected but is missing from the response, depending on how you configured your serializer to handle those cases, an exception might be thrown.  
+
+### Request Logging
+
+If need to log the requests as they go you can add a request handler, like below:
+
+```f#
+let loggingHandler =
+  { new RequestHandler() with
+    member this.SendAsync(request: RequestMessage, token: CancellationToken) =
+      let content =
+        match request.Content |> Option.ofObj with
+        | None -> Array.zeroCreate 0
+        | Some c -> c.AsyncRead (int request.Content.Length) |> Async.RunSynchronously
+        
+      printfn $"Sending {request.Method.Method}: %A{System.Text.Encoding.UTF8.GetString(content)}"
+      this.InnerHandler.SendAsync(request, token)}
+
+let cosmosOptions = cosmosClientOptions {
+  serializer defaultCosmosSerializer
+  custom_handler loggingHandler
+}
+
+type PlanetContext(connString: string, databaseId: string, options: CosmosClientOptions Option) =
+  inherit CosmosContext(connString, databaseId, Option.toObj options)
+```
+
+In this example we log every single request content body, if any.
 
 ## Planned Future Features
 
