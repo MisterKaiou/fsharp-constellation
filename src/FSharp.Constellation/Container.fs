@@ -85,7 +85,7 @@ let deleteItemByIdWithOptions itemOptions cancelToken keys (container: Constella
   let deleteItem (item: string * PartitionKeys) =
     let id, pk = item
 
-    container.inner.DeleteItemAsync(id, pk.Key, options, token) 
+    container.inner.DeleteItemAsync<'a>(id, pk.Key, options, token) 
     |> Async.AwaitTask
   
   Operation
@@ -208,7 +208,7 @@ let replaceWithOptions itemOptions cancelToken items (container: ConstellationCo
       item >|| AttributeHelpers.getIdFrom
       <| AttributeHelpers.getPartitionKeyFrom
   
-    container.inner.ReplaceItemAsync(item, id, pk.Key, options, token) 
+    container.inner.ReplaceItemAsync<'a>(item, id, pk.Key, options, token) 
     |> Async.AwaitTask
 
   Operation
