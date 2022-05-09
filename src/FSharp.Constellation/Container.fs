@@ -208,7 +208,7 @@ let replaceWithOptions itemOptions cancelToken items (container: ConstellationCo
       item >|| AttributeHelpers.getIdFrom
       <| AttributeHelpers.getPartitionKeyFrom
   
-    container.inner.ReplaceItemAsync<'a>(item, id, pk.Key, options, token) 
+    container.inner.ReplaceItemAsync<'b>(item, id, pk.Key, options, token) 
     |> Async.AwaitTask
 
   Operation
@@ -224,6 +224,9 @@ let replaceWithOptions itemOptions cancelToken items (container: ConstellationCo
 /// <returns> A PendingOperation whose resource value will be of the same type of the Container. </returns>
 /// <remarks> Same as calling replaceWithOptions with no itemOptions and no CancellationToken</remarks>
 let replaceItem items (container: ConstellationContainer<'a>) =
+  replaceWithOptions None None items container
+  
+let replaceItemOf (items: 'b list) (container: ConstellationContainer<'a>) =
   replaceWithOptions None None items container
 
 (* ----------------------- GetSingle ----------------------- *)
@@ -301,7 +304,7 @@ let getItem keys (container: ConstellationContainer<'a>) =
 /// <returns> A PendingOperation whose resource value will be of the same type of the Container. </returns>
 /// <typeparam name="'a"> The type handled by the container. </typeparam>
 /// <typeparam name="'b"> The type to read the response resource as. </typeparam>
-let getItemAs<'a, 'b> keys (container: ConstellationContainer<'a>) =
+let getItemOf<'a, 'b> keys (container: ConstellationContainer<'a>) =
   getItemWithOptions<'a, 'b> None None keys container 
 
 (* ----------------------- Query ----------------------- *)
