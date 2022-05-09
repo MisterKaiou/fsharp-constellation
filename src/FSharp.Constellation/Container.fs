@@ -236,7 +236,7 @@ let replaceItem items (container: ConstellationContainer<'a>) =
 /// <param name="keys"> The keys to use in the search. </param>
 /// <param name="container"> The container from which send the requests. </param>
 /// <returns> A PendingOperation whose resource value will be of the same type of the Container. </returns>
-let getItemWithOptions
+let getItemWithOptions<'a, 'b>
   itemOptions
   cancelToken
   keys
@@ -248,7 +248,7 @@ let getItemWithOptions
 
   Operation
   <| fun _ ->
-       container.inner.ReadItemAsync<'a>(id, key.Key, options, token) 
+       container.inner.ReadItemAsync<'b>(id, key.Key, options, token) 
        |> (Async.AwaitTask >> fun a -> [ a ]) 
        |> AsyncSeq.ofSeqAsync 
        |> AsyncSeq.map (fun i -> Response i)
@@ -264,7 +264,7 @@ let getItemWithOptions
 let getItemWithOptionsFromItem
   itemOptions
   cancelToken
-  item
+  (item: 'b)
   (container: ConstellationContainer<'a>)
   =
   let keys =
@@ -272,7 +272,7 @@ let getItemWithOptionsFromItem
     <| AttributeHelpers.getPartitionKeyFrom
     |> IdAndKey
   
-  getItemWithOptions itemOptions cancelToken keys container
+  getItemWithOptions<'a, 'b> itemOptions cancelToken keys container
 
 /// <summary>
 /// Returns an item from the database. Or an empty list if not found.
@@ -281,7 +281,7 @@ let getItemWithOptionsFromItem
 /// <param name="container"> The container from which send the requests. </param>
 /// <returns> A PendingOperation whose resource value will be of the same type of the Container. </returns>
 /// <remarks> Same as calling getItemWithOptionsFromItem with no itemOptions and no CancellationToken. </remarks>
-let getItemFromItem item (container: ConstellationContainer<'a>) =
+let getItemFromItem (item: 'b) (container: ConstellationContainer<'a>) =
   getItemWithOptionsFromItem None None item container
 
 /// <summary>
@@ -291,7 +291,18 @@ let getItemFromItem item (container: ConstellationContainer<'a>) =
 /// <param name="container"> The container from which send the requests. </param>
 /// <returns> A PendingOperation whose resource value will be of the same type of the Container. </returns>
 let getItem keys (container: ConstellationContainer<'a>) =
-  getItemWithOptions None None keys container 
+  getItemWithOptions<'a, 'a> None None keys container 
+
+/// <summary>
+/// Returns an item from the database or an empty list if not found. Alternatively, reads the response as type <typeparamref name="'b"/>
+/// </summary>
+/// <param name="keys"> The keys to use in the search. </param>
+/// <param name="container"> The container from which send the requests. </param>
+/// <returns> A PendingOperation whose resource value will be of the same type of the Container. </returns>
+/// <typeparam name="'a"> The type handled by the container. </typeparam>
+/// <typeparam name="'b"> The type to read the response resource as. </typeparam>
+let getItemAs<'a, 'b> keys (container: ConstellationContainer<'a>) =
+  getItemWithOptions<'a, 'b> None None keys container 
 
 (* ----------------------- Query ----------------------- *)
 
@@ -336,7 +347,7 @@ let queryItemsWithOptions<'a, 'b>
                 |> fun f -> Some(f, state))
 
 /// A model that represents the process of building a query.
-type FluentQuery<'a> =
+type FluentQuery<'a, 'b> =
   { /// The container to be used for the query.
     Container: ConstellationContainer<'a>
     /// The query text. 
@@ -351,7 +362,18 @@ type FluentQuery<'a> =
 let query queryText (container: ConstellationContainer<'a>) =
   { Container = container
     QueryText = queryText
-    Parameters = [] }
+    Parameters = [] } : FluentQuery<'a, 'a>
+
+/// <summary> Prepares a query that will have parameters added to it. </summary>
+/// <param name="queryText"> The text to be used in the query. </param>
+/// <param name="container"> The container from which send the requests. </param>
+/// <returns> A FluentQuery used to build the final query that will be executed on the <paramref name="container"/>. </returns>
+/// <typeparam name="'a"> The type handled by the container. </typeparam>
+/// <typeparam name="'b"> The type as which read the response resource. </typeparam>
+let queryOf<'a, 'b> queryText (container: ConstellationContainer<'a>) =
+  { Container = container
+    QueryText = queryText
+    Parameters = [] } : FluentQuery<'a, 'b>
 
 /// <summary> Runs a query on <paramref name="container"/> that has no parameters. </summary>
 /// <param name="queryText"> The text to be used in the query. </param>
@@ -375,22 +397,7 @@ let parameterlessQueryOf<'a, 'b> queryText (container: ConstellationContainer<'a
 /// <param name="params'"> The parameters to be used in the query. </param>
 /// <param name="query"> The query from which build the final operation with parameters added to it. </param>
 /// <returns> A PendingOperation whose resource type will be of the same type as the container provided to query. </returns>
-let withParameters params' (query: FluentQuery<'a>) =
-  let fq = { query with Parameters = params' }
-
-  let q =
-    { Query = fq.QueryText
-      Parameters = fq.Parameters }
-
-  queryItemsWithOptions<'a, 'a> None None None q fq.Container
-
-/// <summary> Adds to <paramref name="query"/> the parameters provided. </summary>
-/// <param name="params'">The parameters to be used in the query.</param>
-/// <param name="query"> The query from which build the final operation with parameters added to it. </param>
-/// <typeparam name="'a"> The type handled by the container. </typeparam>
-/// <typeparam name="'b"> The type as which read the response resource. </typeparam>
-/// <returns> A PendingOperation whose resource type will be of type <typeparamref name="'b"/>. </returns>
-let withParametersOf<'a, 'b> params' (query: FluentQuery<'a>) =
+let withParameters params' (query: FluentQuery<'a, 'b>) =
   let fq = { query with Parameters = params' }
 
   let q =
